@@ -4,7 +4,7 @@ export function Modal({ titulo, color, cerrar, children }: { titulo: string; col
   return (
     <div className="fondo-modal" onClick={cerrar}>
       <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={titulo}>
-        <div className="modal-cabeza" style={color ? { borderColor: color } : undefined}>
+        <div className="modal-cabeza">
           {color && <span className="cuadro" style={{ background: color }} />}
           <h2>{titulo}</h2>
           <button className="cerrar" onClick={cerrar} aria-label="Cerrar">

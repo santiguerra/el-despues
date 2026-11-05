@@ -1,5 +1,5 @@
 // Genera los íconos PNG de la PWA sin dependencias: una sombra pixelada
-// (El Después) sobre fondo morado oscuro. Arte temporal.
+// (El Después) blanca sobre el verde de la marca. Arte temporal.
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
 
@@ -21,7 +21,7 @@ const DIBUJO = [
   '................',
   '................',
 ]
-const COLORES = { '.': [0x14, 0x0f, 0x26], '#': [0x6b, 0x4b, 0xd6], Y: [0xff, 0xd2, 0x3f] }
+const COLORES = { '.': [0x58, 0xcc, 0x02], '#': [0xff, 0xff, 0xff], Y: [0x00, 0x04, 0x37] }
 
 const TABLA = new Uint32Array(256).map((_, n) => {
   let c = n

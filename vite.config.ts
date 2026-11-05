@@ -13,7 +13,7 @@ export default defineConfig({
       injectRegister: 'auto',
       devOptions: { enabled: false },
       includeAssets: ['icons/apple-touch-icon.png'],
-      injectManifest: { globPatterns: ['**/*.{js,css,html,png,svg}'] },
+      injectManifest: { globPatterns: ['**/*.{js,css,html,png,svg,woff2}'] },
       manifest: {
         name: 'El Después',
         short_name: 'El Después',
@@ -23,8 +23,8 @@ export default defineConfig({
         scope: '.',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#140f26',
-        theme_color: '#140f26',
+        background_color: '#ffffff',
+        theme_color: '#ffffff',
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },

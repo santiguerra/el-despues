@@ -24,8 +24,10 @@ export function Cabecera({ ahora }: { ahora: number }) {
         </div>
       </div>
       <div className="stats">
-        <span title="Monedas">🪙 {jugador.monedas}</span>
-        <span title="Racha de días cumplidos">🔥 {racha}</span>
+        <span className="monedas" title="Monedas">🪙 {jugador.monedas}</span>
+        <span className={racha ? 'fuego' : 'apagado'} title="Racha de días cumplidos">
+          🔥 {racha}
+        </span>
       </div>
     </header>
   )

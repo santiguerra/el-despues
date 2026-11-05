@@ -25,7 +25,7 @@ export function Habitos({ ahora }: { ahora: number }) {
           <div key={k} className="tarjeta habito">
             <div className="cabeza-habito">
               <h3>{HABITOS[k]}</h3>
-              <span className="racha">🔥 {viva ? h.racha : 0}</span>
+              <span className={`racha ${viva && h.racha ? '' : 'apagada'}`}>🔥 {viva ? h.racha : 0}</span>
             </div>
             <p className="nota">{DESCRIPCION[k]}</p>
             <small>

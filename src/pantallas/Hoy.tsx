@@ -74,12 +74,15 @@ export function Hoy({ ahora, abrir }: { ahora: number; abrir: (id: string) => vo
       </div>
 
       <div className={`tarjeta rana ${rana ? '' : 'sin-rana'}`}>
+        <span className="emoji">🐸</span>
         {rana ? (
           <button className="enlace" onClick={() => abrir(rana.id)}>
-            🐸 La Rana de hoy: <b>{rana.titulo.replace('🐸 ', '')}</b> a las {minAHhmm(rana.inicio)} · XP doble
+            <span className="rotulo">La Rana de hoy · XP doble</span>
+            <br />
+            <b>{rana.titulo.replace('🐸 ', '')}</b> a las {minAHhmm(rana.inicio)}
           </button>
         ) : (
-          <span>🐸 Hoy no hay Rana. Elígela esta noche para mañana.</span>
+          <span>Hoy no hay Rana. Elígela esta noche para mañana.</span>
         )}
       </div>
 
@@ -139,15 +142,14 @@ export function Hoy({ ahora, abrir }: { ahora: number; abrir: (id: string) => vo
 function TarjetaAhora(p: { activo?: Bloque; enCurso?: Bloque; siguiente?: Bloque; min: number; abrir: (id: string) => void; cerrado: boolean }) {
   const b = p.activo ?? p.enCurso
   if (b) {
-    const color = CATEGORIAS[b.categoria].color
     return (
-      <button className="tarjeta ahora" style={{ borderColor: color }} onClick={() => p.abrir(b.id)}>
+      <button className={`tarjeta ahora ${p.activo ? 'activa' : ''}`} onClick={() => p.abrir(b.id)}>
         <small>{p.activo ? 'EN EXPEDICIÓN' : 'TOCA AHORA'}</small>
         <b>{b.titulo}</b>
         <span>
           {minAHhmm(b.inicio)} · {fmtDur(b.duracion)} · {LUGARES[b.lugar].icono} {LUGARES[b.lugar].nombre}
         </span>
-        <span className="cta">{p.activo ? 'Abrir temporizador →' : b.tipo === 'clase' ? 'Hacer check-in →' : 'Abrir →'}</span>
+        <span className="cta">{p.activo ? 'Ver temporizador' : b.tipo === 'clase' ? 'Hacer check-in' : 'Empezar'}</span>
       </button>
     )
   }
@@ -190,7 +192,9 @@ function LineaTiempo({ bloques, min, abrir }: { bloques: Bloque[]; min: number; 
     filas.push(
       <button key={b.id} className={`fila estado-${b.estado} ${enCurso ? 'en-curso' : ''} ${ignorado ? 'ignorado' : ''}`} onClick={() => abrir(b.id)}>
         <span className="hora">{minAHhmm(b.inicio)}</span>
-        <span className="cuadro" style={{ background: CATEGORIAS[b.categoria].color }} />
+        <span className="cuadro" style={{ background: CATEGORIAS[b.categoria].color }}>
+          {ICONO_ESTADO[b.estado]}
+        </span>
         <span className="info">
           <span className="t">{b.titulo}</span>
           <span className="sub">
@@ -201,7 +205,6 @@ function LineaTiempo({ bloques, min, abrir }: { bloques: Bloque[]; min: number; 
             {b.meta && ` · meta: ${b.meta}`}
           </span>
         </span>
-        <span className="icono-estado">{ICONO_ESTADO[b.estado]}</span>
       </button>,
     )
     if (!ignorado) finPrevio = Math.max(finPrevio ?? 0, finDe(b) === Infinity ? 24 * 60 : finDe(b))
@@ -317,7 +320,7 @@ function RanaManana({ fecha }: { fecha: string }) {
 
   if (rana && !editando) {
     return (
-      <div className="tarjeta rana">
+      <div className="tarjeta rana bloque">
         <h3>🐸 Rana de mañana</h3>
         <p>
           <b>{rana.tarea}</b> · {CATEGORIAS[rana.categoria ?? 'empresa'].nombre}
@@ -329,7 +332,7 @@ function RanaManana({ fecha }: { fecha: string }) {
     )
   }
   return (
-    <div className="tarjeta rana">
+    <div className="tarjeta rana bloque">
       <h3>🐸 Elige la Rana de mañana</h3>
       <p className="nota">La tarea más difícil. Será tu primer bloque de trabajo, con XP doble.</p>
       <div className="formulario">
