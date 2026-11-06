@@ -3,6 +3,7 @@ import type { ClaveHabito } from '../types'
 import { useJuego } from '../store'
 import { HABITOS } from '../logic/catalogo'
 import { fechaLocal, sumarDias } from '../logic/tiempo'
+import { Icono } from '../ui/Icono'
 
 const DESCRIPCION: Record<ClaveHabito, string> = {
   lectura: '20 minutos en papel, todas las noches a las 22:15.',
@@ -25,11 +26,13 @@ export function Habitos({ ahora }: { ahora: number }) {
           <div key={k} className="tarjeta habito">
             <div className="cabeza-habito">
               <h3>{HABITOS[k]}</h3>
-              <span className={`racha ${viva && h.racha ? '' : 'apagada'}`}>🔥 {viva ? h.racha : 0}</span>
+              <span className={`racha ${viva && h.racha ? '' : 'apagada'}`}>
+                <Icono n="racha" size={18} /> {viva ? h.racha : 0}
+              </span>
             </div>
             <p className="nota">{DESCRIPCION[k]}</p>
             <small>
-              Mejor racha: {h.mejor} · Sesiones: {h.total} {h.ultima === hoy && '· ✔ hoy'}
+              Mejor racha: {h.mejor} · Sesiones: {h.total} {h.ultima === hoy && '· hecho hoy'}
             </small>
             {k === 'estudio' && (
               <div className="contador">
@@ -47,7 +50,9 @@ export function Habitos({ ahora }: { ahora: number }) {
       })}
 
       <section className="tarjeta">
-        <h3>🧊 Metas de Rubik</h3>
+        <h3>
+          <Icono n="cubo" color="var(--rojo)" /> Metas de Rubik
+        </h3>
         <p className="nota">Cada día se asigna una meta en rotación. La puedes cambiar dentro del bloque.</p>
         {s.ajustes.rubikMetas.map((m, i) => (
           <div key={m + i} className="fila-simple">

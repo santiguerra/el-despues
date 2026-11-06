@@ -1,6 +1,7 @@
 import { useJuego } from '../store'
 import { VENTANA_SIGUE_AHI, tiemposClase } from '../logic/reglas'
 import { fechaLocal, fmtReloj, minutosDelDia } from '../logic/tiempo'
+import { Icono } from '../ui/Icono'
 
 /** Aparece a mitad de cualquier clase con check-in hasta que respondas (10 min). */
 export function ModalSigueAhi({ ahora }: { ahora: number }) {
@@ -24,7 +25,7 @@ export function ModalSigueAhi({ ahora }: { ahora: number }) {
           Mitad de <b>{clase.titulo}</b>. El Después espera que te salgas.
         </p>
         <button className="btn btn-grande btn-oro" onClick={() => sigoAqui(fecha, clase.id)}>
-          👀 Sigo aquí
+          <Icono n="ojo" size={22} /> Sigo aquí
         </button>
         <small>Responde en {fmtReloj(quedan)} (+5 XP)</small>
       </div>

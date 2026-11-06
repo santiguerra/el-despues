@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useJuego } from '../store'
 import { pedirPermisoNotificaciones } from '../motor'
+import { Icono } from '../ui/Icono'
 
 export function Ajustes() {
   const s = useJuego()
@@ -64,11 +65,26 @@ export function Ajustes() {
       </section>
 
       <section className="tarjeta">
-        <h3>🔔 Notificaciones</h3>
+        <h3>
+          <Icono n="campana" color="var(--oro)" /> Notificaciones
+        </h3>
         <p className="nota">
           "¿Sigues ahí?" de las clases y recordatorios. Funcionan mientras la app esté abierta o en segundo plano reciente.
         </p>
-        <p>Estado: {permiso === 'granted' ? '✔ activadas' : permiso === 'denied' ? '✖ bloqueadas (actívalas en el navegador)' : permiso}</p>
+        <p className="con-icono">
+          Estado:{' '}
+          {permiso === 'granted' ? (
+            <>
+              <Icono n="ok" color="var(--verde)" /> activadas
+            </>
+          ) : permiso === 'denied' ? (
+            <>
+              <Icono n="mal" color="var(--rojo)" /> bloqueadas (actívalas en el navegador)
+            </>
+          ) : (
+            permiso
+          )}
+        </p>
         {permiso === 'default' && (
           <button className="btn btn-oro" onClick={async () => setPermiso((await pedirPermisoNotificaciones()) as NotificationPermission)}>
             Activar notificaciones
@@ -89,7 +105,9 @@ export function Ajustes() {
       </section>
 
       <section className="tarjeta">
-        <h3>🔊 Sonido</h3>
+        <h3>
+          <Icono n="sonido" color="var(--azul)" /> Sonido
+        </h3>
         <label className="check">
           <input type="checkbox" checked={!a.silencio} onChange={() => s.editarAjustes({ silencio: !a.silencio })} />
           Sonidos de la aldea
@@ -97,7 +115,9 @@ export function Ajustes() {
       </section>
 
       <section className="tarjeta">
-        <h3>🧪 Modo prueba: reloj simulado</h3>
+        <h3>
+          <Icono n="prueba" color="#ce82ff" /> Modo prueba: reloj simulado
+        </h3>
         <p className="nota">Adelanta el reloj para probar check-ins, cierre, etc. Desfase: {a.desfaseMin} min.</p>
         <div className="botones">
           {[-60, -5, 5, 15, 60].map((m) => (
@@ -112,7 +132,9 @@ export function Ajustes() {
       </section>
 
       <section className="tarjeta formulario">
-        <h3>💾 Datos</h3>
+        <h3>
+          <Icono n="guardar" color="var(--azul)" /> Datos
+        </h3>
         <p className="nota">Todo vive en este celular (localStorage). Haz copias de vez en cuando.</p>
         <div className="botones">
           <button className="btn" onClick={exportar}>

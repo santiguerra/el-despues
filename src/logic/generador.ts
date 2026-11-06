@@ -107,7 +107,7 @@ export function aplicarRana(bloques: Bloque[], rana: Rana | undefined): void {
   if (!candidato) return
   candidato.esRana = true
   candidato.tituloOriginal = candidato.titulo
-  candidato.titulo = `🐸 ${rana.tarea}`
+  candidato.titulo = rana.tarea
   if (rana.categoria) candidato.categoria = rana.categoria
 }
 

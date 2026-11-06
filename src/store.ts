@@ -18,10 +18,10 @@ import type {
   Recompensa,
   TareaFamilia,
 } from './types'
+import type { Simbolo } from './ui/Icono'
 import { HABITOS } from './logic/catalogo'
-import { avanzar, despuesInicial, fraseAvance, fraseRetroceso, retroceder } from './logic/despues'
+import { avanzar, despuesInicial, fraseRetroceso, retroceder } from './logic/despues'
 import { cosmetico } from './logic/cosmeticos'
-import { EDIFICIOS, completadasEn, edificioDe, nivelEdificio } from './aldea/edificios'
 import { aplicarRana, bloqueFamilia, crearDia, horaCierre, limiteDia, organizar } from './logic/generador'
 import { ajustesIniciales, familiaInicial, plantillaInicial, tiendaInicial } from './logic/plantillaInicial'
 import {
@@ -33,7 +33,6 @@ import {
   XP_LEVANTE,
   evaluar,
   monedasDe,
-  nivelDeXp,
   tiemposClase,
   xpBloque,
 } from './logic/reglas'
@@ -57,6 +56,10 @@ export interface Aviso {
   id: string
   texto: string
   tipo: 'xp' | 'info' | 'alerta'
+  icono?: Simbolo
+  /** botín que muestra el aviso como fichas animadas */
+  xp?: number
+  monedas?: number
 }
 
 export interface Notificacion {
@@ -155,21 +158,18 @@ export const reloj = (ajustes: Ajustes) => Date.now() + ajustes.desfaseMin * 600
 
 type S = Juego
 
-function avisar(s: S, texto: string, tipo: Aviso['tipo'] = 'info') {
-  s.avisos.push({ id: uid(), texto, tipo })
+function avisar(s: S, texto: string, tipo: Aviso['tipo'] = 'info', icono?: Simbolo, botin?: { xp: number; monedas: number }) {
+  s.avisos.push({ id: uid(), texto, tipo, icono: icono ?? (tipo === 'alerta' ? 'alerta' : undefined), ...botin })
   if (s.avisos.length > 4) s.avisos.shift()
 }
 
-function otorgar(s: S, dia: Dia, xp: number, monedas: number, motivo: string) {
+function otorgar(s: S, dia: Dia, xp: number, monedas: number, motivo: string, icono: Simbolo = 'xp') {
   if (xp <= 0 && monedas <= 0) return
-  const antes = nivelDeXp(s.jugador.xp)
   s.jugador.xp += xp
   s.jugador.monedas += monedas
   dia.xp += xp
   dia.monedas += monedas
-  avisar(s, `+${xp} XP · +${monedas} 🪙 ${motivo}`, 'xp')
-  const despues = nivelDeXp(s.jugador.xp)
-  if (despues > antes) avisar(s, `⬆ ¡Nivel ${despues}! El Reino del Ahora se fortalece.`, 'xp')
+  avisar(s, motivo, 'xp', icono, { xp, monedas })
 }
 
 /** Minutos de "ahora" vistos desde la fecha dada. */
@@ -197,7 +197,7 @@ function revisarEscudo(s: S, dia: Dia) {
   const h = dia.higiene
   if (!h.escudo && h.manana && h.noche && h.comidas >= s.ajustes.comidasMeta) {
     h.escudo = true
-    otorgar(s, dia, XP_ESCUDO, 5, '🛡 Escudo de Higiene')
+    otorgar(s, dia, XP_ESCUDO, 5, 'Escudo de Higiene', 'escudo')
   }
 }
 
@@ -208,10 +208,10 @@ function sumarHabito(s: S, dia: Dia, clave: ClaveHabito) {
   h.racha = h.ultima === sumarDias(dia.fecha, -1) ? h.racha + 1 : 1
   h.ultima = dia.fecha
   h.mejor = Math.max(h.mejor, h.racha)
-  otorgar(s, dia, Math.min(h.racha, 10) * 2, 0, `🔥 Racha de ${HABITOS[clave]}: ${h.racha}`)
+  otorgar(s, dia, Math.min(h.racha, 10) * 2, 0, `Racha de ${HABITOS[clave]}: ${h.racha}`, 'racha')
   if (clave === 'estudio' && h.total % 5 === 0 && s.ajustes.estudioMin < 120) {
     s.ajustes.estudioMin += 5
-    avisar(s, `📈 Estudio propio sube a ${s.ajustes.estudioMin} min por bloque.`)
+    avisar(s, `Estudio propio sube a ${s.ajustes.estudioMin} min por bloque.`, 'info', 'sube')
   }
 }
 
@@ -230,19 +230,15 @@ function finalizar(s: S, dia: Dia, b: Bloque) {
     dia.higiene.noche = true
     revisarEscudo(s, dia)
   }
-  if (b.esRana && r.xp > 0) avisar(s, '🐸 ¡Venciste a la Rana! Botín doble.', 'xp')
-  // Fase 2: el edificio de la expedición sube de nivel
-  const ed = edificioDe(b)
-  const hechas = completadasEn(ed, s.dias)
-  const nivel = nivelEdificio(hechas)
-  if (nivel > nivelEdificio(hechas - 1)) avisar(s, `🏛 ${EDIFICIOS[ed].nombre} sube a nivel ${nivel}.`, 'xp')
+  // La Rana vencida, la subida de nivel del edificio y la del jugador se celebran en pantalla (ui/Celebraciones).
   // Fase 3: cumplir hace retroceder a El Después
-  if (retroceder(s.despues)) avisar(s, fraseRetroceso(s.despues.retrocesos))
+  if (retroceder(s.despues)) avisar(s, fraseRetroceso(s.despues.retrocesos), 'info', 'sol')
 }
 
 /** Fase 3: cada "No pude" oscurece un terreno. */
 function rendirse(s: S) {
-  if (avanzar(s.despues)) avisar(s, fraseAvance(s.despues.avances), 'alerta')
+  // el avance se muestra como escena en ui/Celebraciones
+  avanzar(s.despues)
 }
 
 function pendientesAntes(dia: Dia) {
@@ -258,7 +254,7 @@ function informarReplan(s: S, dia: Dia, antes: Map<string, number>) {
     else if (antes.get(b.id) !== b.inicio) movidos++
   }
   if (!movidos && !fuera) avisar(s, 'El resto del día sigue igual.')
-  else avisar(s, `🗺 Replanifiqué: ${movidos} movido(s)${fuera ? `, ${fuera} sin espacio antes del cierre` : ''}.`)
+  else avisar(s, `Replanifiqué: ${movidos} movido(s)${fuera ? `, ${fuera} sin espacio antes del cierre` : ''}.`, 'info', 'mapa')
 }
 
 // ---------- store ----------
@@ -290,7 +286,7 @@ export const useJuego = create<Juego>()(
               j.racha = j.ultimaCumplida === sumarDias(f, -1) ? j.racha + 1 : 1
               j.ultimaCumplida = f
               j.mejorRacha = Math.max(j.mejorRacha, j.racha)
-              otorgar(s, dia, XP_DIA_CUMPLIDO, 5, `Día ${f} cumplido (${Math.round(r.porcentaje * 100)}%) 🔥 ${j.racha}`)
+              otorgar(s, dia, XP_DIA_CUMPLIDO, 5, `Día ${f} cumplido (${Math.round(r.porcentaje * 100)}%) · racha ${j.racha}`, 'racha')
             } else {
               j.racha = 0
               avisar(s, `El ${f} quedó en ${Math.round(r.porcentaje * 100)}%. La racha vuelve a empezar.`, 'alerta')
@@ -341,27 +337,30 @@ export const useJuego = create<Juego>()(
               if (b.avisoInicio || b.estado !== 'pendiente' || b.tipo === 'hito' || b.sinEspacio || (b.opcional && !b.aceptado)) continue
               if (min < b.inicio - 5 || min >= b.inicio + 1) continue
               b.avisoInicio = true
-              const titulo = b.esRana ? '🐸 La Rana te espera' : b.tipo === 'clase' ? '🎓 Clase en 5 min' : '⚔ Expedición en 5 min'
+              const titulo = b.esRana ? 'La Rana te espera' : b.tipo === 'clase' ? 'Clase en 5 min' : 'Expedición en 5 min'
               const cuerpo = `${b.titulo} a las ${minAHhmm(b.inicio)}${b.tipo === 'clase' ? ' · check-in en los primeros 5 min' : ''}`
               notifs.push({ tipo: 'aviso', titulo, cuerpo, fecha, id: b.id })
             }
           }
           if (!a.sinAvisoRana && !dia.avisoRana && min >= 21 * 60 && !s.ranas[sumarDias(fecha, 1)]) {
             dia.avisoRana = true
-            notifs.push({ tipo: 'aviso', titulo: '🐸 Elige la Rana de mañana', cuerpo: 'La tarea más difícil, decidida desde hoy.', fecha, id: 'rana' })
+            notifs.push({ tipo: 'aviso', titulo: 'Elige la Rana de mañana', cuerpo: 'La tarea más difícil, decidida desde hoy.', fecha, id: 'rana' })
           }
           if (!a.sinAvisoResumen && !dia.avisoResumen && diaSemana(fecha) === 0 && min >= 15 * 60) {
             dia.avisoResumen = true
             notifs.push({
               tipo: 'aviso',
               pestana: 'progreso',
-              titulo: '📊 Tu resumen semanal está listo',
+              titulo: 'Tu resumen semanal está listo',
               cuerpo: 'Mira qué categorías y franjas funcionaron antes de planear la semana.',
               fecha,
               id: 'resumen',
             })
           }
-          for (const n of notifs) avisar(s, `${n.titulo}: ${n.cuerpo}`)
+          for (const n of notifs) {
+            const b = dia.bloques.find((x) => x.id === n.id)
+            avisar(s, `${n.titulo}: ${n.cuerpo}`, 'info', n.id === 'rana' || b?.esRana ? 'rana' : n.id === 'resumen' ? 'progreso' : b?.tipo === 'clase' ? 'clase' : 'reloj')
+          }
         })
         return notifs
       },
@@ -381,9 +380,9 @@ export const useJuego = create<Juego>()(
             const antes = pendientesAntes(dia)
             reorganizar(s, dia, min)
             const movidos = dia.bloques.filter((x) => antes.has(x.id) && antes.get(x.id) !== x.inicio).length
-            if (movidos) avisar(s, `⏱ Empezaste a otra hora: moví ${movidos} bloque(s).`)
+            if (movidos) avisar(s, `Empezaste a otra hora: moví ${movidos} bloque(s).`, 'info', 'timer')
           }
-          avisar(s, `⚔ Expedición iniciada: ${b.titulo}`)
+          avisar(s, `Expedición iniciada: ${b.titulo}`, 'info', b.esRana ? 'rana' : 'hoy')
         }),
 
       completar: (fecha, id) =>
@@ -447,7 +446,7 @@ export const useJuego = create<Juego>()(
           b.estado = 'activo'
           b.checkIn = reloj(s.ajustes)
           b.iniciadoEn = msDe(fecha, b.inicio)
-          avisar(s, `🎓 Check-in en ${b.titulo}. Quédate hasta el final.`)
+          avisar(s, `Check-in en ${b.titulo}. Quédate hasta el final.`, 'info', 'clase')
         }),
 
       sigoAqui: (fecha, id) =>
@@ -458,7 +457,7 @@ export const useJuego = create<Juego>()(
           const c = tiemposClase(b)
           if (min < c.mitad || min > c.mitad + VENTANA_SIGUE_AHI) return avisar(s, 'Esa confirmación ya venció.', 'alerta')
           b.sigueAhi = reloj(s.ajustes)
-          avisar(s, '👀 Confirmado: sigues en clase.')
+          avisar(s, 'Confirmado: sigues en clase.', 'info', 'ojo')
         }),
 
       checkOut: (fecha, id) =>
@@ -482,7 +481,7 @@ export const useJuego = create<Juego>()(
           const { b } = hallar(s, fecha, id)
           if (!b) return
           b.salidaSolicitada = undefined
-          avisar(s, '💪 Te quedas. El Después retrocede un paso.')
+          avisar(s, 'Te quedas. El Después retrocede un paso.', 'info', 'fuerza')
         }),
 
       confirmarSalida: (fecha, id) =>
@@ -527,7 +526,7 @@ export const useJuego = create<Juego>()(
           const meta = hhmmAMin(esFinde(fecha) ? s.ajustes.despertarFinde : s.ajustes.despertarSemana)
           if (minDe(s, fecha) <= meta + 10) {
             dia.levante = 'a-tiempo'
-            otorgar(s, dia, XP_LEVANTE, monedasDe(XP_LEVANTE), '☀ Me levanté a tiempo')
+            otorgar(s, dia, XP_LEVANTE, monedasDe(XP_LEVANTE), 'Me levanté a tiempo', 'sol')
           } else {
             dia.levante = 'tarde'
             avisar(s, `Te levantaste después de las ${minAHhmm(meta + 10)}. Mañana será.`, 'alerta')
@@ -541,7 +540,7 @@ export const useJuego = create<Juego>()(
           const meta = hhmmAMin(s.ajustes.horaLuces)
           if (minDe(s, fecha) <= meta + 10) {
             dia.acoste = 'a-tiempo'
-            otorgar(s, dia, XP_ACOSTE, monedasDe(XP_ACOSTE), '🌙 Me acosté a tiempo')
+            otorgar(s, dia, XP_ACOSTE, monedasDe(XP_ACOSTE), 'Me acosté a tiempo', 'luna')
           } else {
             dia.acoste = 'tarde'
             avisar(s, 'Después de la hora de luces. A dormir ya.', 'alerta')
@@ -638,7 +637,7 @@ export const useJuego = create<Juego>()(
           else delete s.ranas[fecha]
           const dia = s.dias[fecha]
           if (dia) aplicarRana(dia.bloques, rana ?? undefined)
-          if (rana) avisar(s, `🐸 Rana elegida: «${rana.tarea}». Mañana será tu primer bloque de trabajo, con XP doble.`)
+          if (rana) avisar(s, `Rana elegida: «${rana.tarea}». Mañana será tu primer bloque de trabajo, con XP doble.`, 'info', 'rana')
         }),
 
       agregarRecompensa: (nombre, costo) => set((s) => void s.tienda.push({ id: uid(), nombre, costo })),
@@ -655,21 +654,20 @@ export const useJuego = create<Juego>()(
         set((s) => {
           const r = s.tienda.find((x) => x.id === id)
           if (!r) return
-          if (s.jugador.monedas < r.costo) return avisar(s, `Te faltan ${r.costo - s.jugador.monedas} 🪙.`, 'alerta')
+          if (s.jugador.monedas < r.costo) return avisar(s, `Te faltan ${r.costo - s.jugador.monedas} monedas.`, 'alerta', 'moneda')
           s.jugador.monedas -= r.costo
           s.canjes.unshift({ id: uid(), nombre: r.nombre, costo: r.costo, fecha: reloj(s.ajustes) })
-          avisar(s, `🎁 Disfruta: ${r.nombre}. Te lo ganaste, sin culpa.`, 'xp')
+          avisar(s, `Disfruta: ${r.nombre}. Te lo ganaste, sin culpa.`, 'xp', 'regalo')
         }),
 
       comprarCosmetico: (id) =>
         set((s) => {
           const c = cosmetico(id)
           if (!c || s.cosmeticos.comprados.includes(id)) return
-          if (s.jugador.monedas < c.costo) return avisar(s, `Te faltan ${c.costo - s.jugador.monedas} 🪙 para ${c.nombre}.`, 'alerta')
+          if (s.jugador.monedas < c.costo) return avisar(s, `Te faltan ${c.costo - s.jugador.monedas} monedas para ${c.nombre}.`, 'alerta', 'moneda')
           s.jugador.monedas -= c.costo
           s.cosmeticos.comprados.push(id)
           s.cosmeticos.equipados[c.ranura] = id
-          avisar(s, `✨ Compraste ${c.nombre}. Ya está en la aldea.`)
         }),
 
       equipar: (id) =>
@@ -707,7 +705,14 @@ export const useJuego = create<Juego>()(
     })),
     {
       name: 'el-despues',
-      version: 1,
+      version: 2,
+      // v2: los títulos de la Rana ya no llevan emoji (el ícono sale de esRana).
+      migrate: (guardado, version) => {
+        const d = guardado as Partial<Datos>
+        if (version < 2 && d.dias)
+          for (const dia of Object.values(d.dias)) for (const b of dia.bloques) b.titulo = b.titulo.replace(/^🐸\s*/u, '')
+        return d as Datos
+      },
       partialize: (s) => {
         const { plantilla, familia, ajustes, dias, ranas, jugador, habitos, tienda, canjes, despues, cosmeticos } = s
         return { plantilla, familia, ajustes, dias, ranas, jugador, habitos, tienda, canjes, despues, cosmeticos }

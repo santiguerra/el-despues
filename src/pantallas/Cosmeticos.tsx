@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useJuego } from '../store'
 import { COSMETICOS, RANURAS, type Cosmetico } from '../logic/cosmeticos'
 import * as arte from '../aldea/arte'
+import { Icono } from '../ui/Icono'
 
 /** Dibujo pequeño de cada cosmético, generado con el mismo pixel art de la aldea. */
 function vistaPrevia(c: Cosmetico): string {
@@ -49,11 +50,17 @@ export function TiendaCosmeticos() {
               <b>{c.nombre}</b>
               {tiene ? (
                 <button className={`btn btn-mini ${puesto ? 'btn-azul' : ''}`} onClick={() => equipar(c.id)}>
-                  {puesto ? '✔ Puesto' : 'Usar'}
+                  {puesto ? (
+                    <>
+                      <Icono n="check" size={16} weight="bold" /> Puesto
+                    </>
+                  ) : (
+                    'Usar'
+                  )}
                 </button>
               ) : (
                 <button className="btn btn-mini btn-oro" disabled={monedas < c.costo} onClick={() => comprar(c.id)}>
-                  {c.costo} 🪙
+                  <Icono n="moneda" size={16} /> {c.costo}
                 </button>
               )}
             </div>

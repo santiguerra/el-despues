@@ -437,3 +437,7 @@ export function colinas(ancho: number): HTMLCanvasElement {
     }
   })
 }
+
+/** Llama de la fogata para las escenas de la crónica. */
+export const llama = () =>
+  mapa(['..y..', '.yYy.', '.yYy.', 'yYwYy', 'yYwYy', '.yyy.'], { y: '#ff9600', Y: ORO, w: '#fff4cc' })

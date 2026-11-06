@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Icono } from '../ui/Icono'
 
 export function Modal({ titulo, color, cerrar, children }: { titulo: string; color?: string; cerrar: () => void; children: ReactNode }) {
   return (
@@ -8,7 +9,7 @@ export function Modal({ titulo, color, cerrar, children }: { titulo: string; col
           {color && <span className="cuadro" style={{ background: color }} />}
           <h2>{titulo}</h2>
           <button className="cerrar" onClick={cerrar} aria-label="Cerrar">
-            ✕
+            <Icono n="cerrar" size={22} weight="bold" />
           </button>
         </div>
         <div className="modal-cuerpo">{children}</div>

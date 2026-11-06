@@ -150,3 +150,6 @@ export function vidaRana(b: Pick<Bloque, 'estado' | 'iniciadoEn' | 'duracion'>, 
   const golpe = b.duracion * 60000 * 0.8
   return Math.max(0, Math.min(1, 1 - (ahora - b.iniciadoEn) / golpe))
 }
+
+export const nivelesDe = (dias: Record<string, Dia>) =>
+  Object.fromEntries(ORDEN_EDIFICIOS.map((id) => [id, nivelEdificio(completadasEn(id, dias))])) as Record<IdEdificio, number>

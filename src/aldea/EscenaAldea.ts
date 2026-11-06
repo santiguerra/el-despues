@@ -9,10 +9,9 @@ import { PLANOS } from './arte'
 import {
   ORDEN_EDIFICIOS,
   cambios,
-  completadasEn,
   edificioDe,
   instantanea,
-  nivelEdificio,
+  nivelesDe,
   nocheDe,
   vidaRana,
   type EventoAldea,
@@ -69,8 +68,6 @@ function semilla(n: number) {
   return () => ((n = (n * 1664525 + 1013904223) % 4294967296) / 4294967296)
 }
 
-const nivelesDe = (dias: Record<string, Dia>) =>
-  Object.fromEntries(ORDEN_EDIFICIOS.map((id) => [id, nivelEdificio(completadasEn(id, dias))])) as Record<IdEdificio, number>
 
 export class EscenaAldea extends Phaser.Scene {
   private ctrl!: Control

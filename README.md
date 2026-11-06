@@ -1,6 +1,6 @@
 # El Después — Fases 0 a 4
 
-PWA-juego (Vite + React + TypeScript; la aldea usa Phaser 3). Eres el guardián del Reino del Ahora; tu agenda real es el juego.
+PWA-juego (Vite + React + TypeScript; la aldea usa Phaser 3, las animaciones GSAP y los íconos Phosphor). Eres el guardián del Reino del Ahora; tu agenda real es el juego.
 
 ```bash
 npm install
@@ -17,6 +17,8 @@ Estructura:
 - `src/store.ts` estado del juego (zustand + immer, persistido).
 - `src/motor.ts` reloj, generación diaria, "¿Sigues ahí?" y notificaciones.
 - `src/aldea/` la aldea en Phaser: pixel art dibujado por código (`arte.ts`), escena (`EscenaAldea.ts`), sonidos WebAudio (`sonido.ts`) y lógica pura de edificios/niveles/Rana (`edificios.ts`).
+- `src/ui/` íconos (`Icono.tsx`: Phosphor + sprites de pixel art), animaciones GSAP (`animar.ts`: confeti con física, botín que vuela a la cabecera, contadores, rebotes) y celebraciones a pantalla completa (`Celebraciones.tsx`).
+- `src/aldea/Libro.tsx` la Crónica como libro ilustrado: seis escenas animadas en pixel art.
 - `src/pantallas/` Hoy, bloque activo, plantilla semanal, progreso (resumen semanal + hábitos), tienda (recompensas + cosméticos), ajustes.
 - `src/sw.ts` service worker (offline + botón "Sigo aquí" de la notificación).
 

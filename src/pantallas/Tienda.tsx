@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Recompensa } from '../types'
 import { useJuego } from '../store'
 import { TiendaCosmeticos } from './Cosmeticos'
+import { Icono } from '../ui/Icono'
 
 export function Tienda() {
   const s = useJuego()
@@ -24,21 +25,25 @@ export function Tienda() {
   return (
     <div className="pantalla">
       <h1>Tienda de recompensas</h1>
-      <p className="saldo">🪙 {s.jugador.monedas} monedas</p>
+      <p className="saldo">
+        <Icono n="moneda" size={28} /> {s.jugador.monedas} monedas
+      </p>
       <p className="nota">Recompensas reales. Los videojuegos se ganan aquí: no son un bloque.</p>
 
       {s.tienda.map((r) => (
         <div key={r.id} className="tarjeta recompensa">
           <div>
             <b>{r.nombre}</b>
-            <small>{r.costo} 🪙</small>
+            <small className="con-icono">
+              <Icono n="moneda" size={14} /> {r.costo}
+            </small>
           </div>
           <div className="botones">
             <button className="btn btn-oro" disabled={s.jugador.monedas < r.costo} onClick={() => s.canjear(r.id)}>
               Canjear
             </button>
             <button className="btn btn-mini" onClick={() => abrir(r)}>
-              ✎
+              <Icono n="editar" size={18} />
             </button>
           </div>
         </div>
@@ -87,7 +92,7 @@ export function Tienda() {
             <div key={c.id} className="fila-simple">
               <span>{c.nombre}</span>
               <small>
-                −{c.costo} 🪙 · {new Date(c.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
+                −{c.costo} monedas · {new Date(c.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}
               </small>
             </div>
           ))}

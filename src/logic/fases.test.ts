@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Bloque, Dia } from '../types'
-import { cambios, edificioDe, estadistica, faltanParaNivel, instantanea, nivelEdificio, nocheDe, vidaRana } from '../aldea/edificios'
+import { cambios, edificioDe, estadistica, faltanParaNivel, instantanea, nivelEdificio, nivelesDe, nocheDe, vidaRana } from '../aldea/edificios'
 import { ORDEN_TERRENOS, TERRENOS, avanzar, despuesInicial, retroceder } from './despues'
 import { COSMETICOS } from './cosmeticos'
 import { franjaDe, lunesDe, resumenSemana } from './resumen'
@@ -185,7 +185,6 @@ describe('store: fases 2 a 4', () => {
     useJuego.setState({ dias: { [LUNES]: dia(LUNES, [x, y]) } })
     s().noPude(LUNES, x.id)
     expect(s().despues.sombra).toBe(1)
-    expect(s().avisos.some((a) => a.texto.includes('🌑'))).toBe(true)
 
     s().iniciar(LUNES, y.id)
     vi.setSystemTime(new Date(2026, 10, 9, 9, 50)) // 50 de 60 min (más del 80 %)
@@ -194,16 +193,15 @@ describe('store: fases 2 a 4', () => {
     expect(s().despues).toMatchObject({ sombra: 0, avances: 1, retrocesos: 1 })
   })
 
-  it('vencer a la Rana da botín doble y anuncia la subida de nivel del edificio', () => {
+  it('vencer a la Rana da botín doble y sube de nivel la Forja', () => {
     const hechas = [b({ inicio: 7 * 60, estado: 'completado' }), b({ inicio: 8 * 60, estado: 'completado' })]
     const rana = b({ inicio: 9 * 60, esRana: true, duracion: 60, estado: 'activo', iniciadoEn: new Date(2026, 10, 9, 8, 0).getTime() })
     useJuego.setState({ dias: { [LUNES]: dia(LUNES, [...hechas, rana]) } })
     s().completar(LUNES, rana.id)
     const final = s().dias[LUNES].bloques.find((z) => z.id === rana.id)!
     expect(final.xp).toBe(40) // 60 min → 20 XP, ×2
-    const textos = s().avisos.map((a) => a.texto)
-    expect(textos.some((t) => t.includes('Venciste a la Rana'))).toBe(true)
-    expect(textos.some((t) => t.includes('La Forja sube a nivel 2'))).toBe(true)
+    expect(s().avisos[0]).toMatchObject({ xp: 40, monedas: 8, icono: 'xp' })
+    expect(nivelesDe(s().dias).forja).toBe(2)
   })
 
   it('salir antes de una clase también cuenta como rendirse', () => {
@@ -218,7 +216,7 @@ describe('store: fases 2 a 4', () => {
     useJuego.setState({ dias: { [LUNES]: dia(LUNES, [x]) } })
     const n = s().revisarAvisos()
     expect(n).toHaveLength(1)
-    expect(n[0]).toMatchObject({ tipo: 'aviso', titulo: '⚔ Expedición en 5 min' })
+    expect(n[0]).toMatchObject({ tipo: 'aviso', titulo: 'Expedición en 5 min' })
     expect(n[0].cuerpo).toContain('Login del cliente')
     expect(s().revisarAvisos()).toHaveLength(0)
   })

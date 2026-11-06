@@ -4,6 +4,7 @@ import { CATEGORIAS } from '../logic/catalogo'
 import { FRANJAS, lunesDe, pct, resumenSemana, type Conteo } from '../logic/resumen'
 import { fechaCorta, fechaLocal, sumarDias } from '../logic/tiempo'
 import { Habitos } from './Habitos'
+import { Icono } from '../ui/Icono'
 
 export function Progreso({ ahora }: { ahora: number }) {
   return (
@@ -48,13 +49,13 @@ function ResumenSemanal({ ahora }: { ahora: number }) {
     <section className="tarjeta resumen-semanal">
       <div className="cabeza-semana">
         <button className="btn btn-mini" onClick={() => setLunes(sumarDias(lunes, -7))} aria-label="Semana anterior">
-          ◀
+          <Icono n="izq" size={18} weight="bold" />
         </button>
         <h2>
           {lunes === estaSemana ? 'Esta semana' : 'Semana'} · {fechaCorta(r.lunes)} – {fechaCorta(r.domingo)}
         </h2>
         <button className="btn btn-mini" disabled={lunes >= estaSemana} onClick={() => setLunes(sumarDias(lunes, 7))} aria-label="Semana siguiente">
-          ▶
+          <Icono n="der" size={18} weight="bold" />
         </button>
       </div>
 
@@ -71,7 +72,9 @@ function ResumenSemanal({ ahora }: { ahora: number }) {
               <b>
                 {r.diasCumplidos}/{r.diasRegistrados}
               </b>
-              <small>días 🔥</small>
+              <small>
+                días <Icono n="racha" size={12} />
+              </small>
             </div>
             <div>
               <b>{r.xp}</b>

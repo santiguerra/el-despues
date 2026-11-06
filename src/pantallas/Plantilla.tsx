@@ -5,6 +5,7 @@ import { CATEGORIAS, LUGARES } from '../logic/catalogo'
 import { choquesFamiliaPlantilla } from '../logic/generador'
 import { NOMBRES_CORTOS, NOMBRES_DIA, ORDEN_DIAS, diaSemana, fechaLocal, fmtDur, hhmmAMin, minAHhmm } from '../logic/tiempo'
 import { BloqueForm, formVacio, type FormBloque } from '../components/BloqueForm'
+import { Icono } from '../ui/Icono'
 
 export function Plantilla({ ahora }: { ahora: number }) {
   const hoy = fechaLocal(ahora)
@@ -46,7 +47,7 @@ export function Plantilla({ ahora }: { ahora: number }) {
             <span className="info">
               <span className="t">{b.titulo}</span>
               <span className="sub">
-                {b.vinculo === 'estudio' ? `${s.ajustes.estudioMin} min (crece)` : fmtDur(b.duracion)} · {LUGARES[b.lugar].icono}{' '}
+                {b.vinculo === 'estudio' ? `${s.ajustes.estudioMin} min (crece)` : fmtDur(b.duracion)} · <Icono n={LUGARES[b.lugar].icono} size={13} />{' '}
                 {CATEGORIAS[b.categoria].nombre} · {b.fijo ? 'FIJO' : 'flexible'}
                 {b.opcional && ' · opcional'}
               </span>
@@ -60,7 +61,7 @@ export function Plantilla({ ahora }: { ahora: number }) {
           + Bloque el {NOMBRES_DIA[dia].toLowerCase()}
         </button>
         <button className="btn" onClick={() => s.aplicarPlantillaHoy(hoy)}>
-          ↻ Aplicar a hoy
+          <Icono n="recargar" size={18} /> Aplicar a hoy
         </button>
       </div>
 
@@ -95,7 +96,9 @@ function Familia() {
 
   return (
     <section className="tarjeta">
-      <h2>👪 Familia</h2>
+      <h2>
+          <Icono n="familia" color="var(--azul)" /> Familia
+        </h2>
       <p className="nota">Marca los días en que te toca. También puedes activarlas o quitarlas solo para hoy desde "Hoy".</p>
       {(['hermana', 'hermano'] as ClaveFamilia[]).map((k) => {
         const t = familia[k]
@@ -131,7 +134,7 @@ function Familia() {
       })}
       {alertas.map((a) => (
         <div key={a} className="alerta">
-          ⚠ {a}
+          <Icono n="alerta" size={18} /> {a}
         </div>
       ))}
     </section>

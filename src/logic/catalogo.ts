@@ -1,4 +1,5 @@
 import type { Categoria, ClaveHabito, Lugar, TipoBloque } from '../types'
+import type { NombreIcono } from '../ui/Icono'
 
 export const CATEGORIAS: Record<Categoria, { nombre: string; color: string }> = {
   clases: { nombre: 'Clases', color: '#4a90e2' },
@@ -16,10 +17,10 @@ export const CATEGORIAS: Record<Categoria, { nombre: string; color: string }> = 
 
 export const LISTA_CATEGORIAS = Object.keys(CATEGORIAS) as Categoria[]
 
-export const LUGARES: Record<Lugar, { nombre: string; icono: string }> = {
-  cuarto: { nombre: 'Mi cuarto', icono: '🛏' },
-  novia: { nombre: 'Casa de mi novia', icono: '💗' },
-  calle: { nombre: 'Calle', icono: '🧭' },
+export const LUGARES: Record<Lugar, { nombre: string; icono: NombreIcono }> = {
+  cuarto: { nombre: 'Mi cuarto', icono: 'cama' },
+  novia: { nombre: 'Casa de mi novia', icono: 'corazon' },
+  calle: { nombre: 'Calle', icono: 'brujula' },
 }
 
 export const TIPOS: Record<TipoBloque, string> = {

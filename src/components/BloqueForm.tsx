@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Categoria, DatosBloque, Lugar, TipoBloque } from '../types'
 import { CATEGORIAS, LISTA_CATEGORIAS, LUGARES, TIPOS } from '../logic/catalogo'
 import { Modal } from './Modal'
+import { Icono } from '../ui/Icono'
 
 export type FormBloque = DatosBloque & { inicio: string }
 
@@ -107,7 +108,7 @@ export function BloqueForm({ titulo, inicial, esFijo, guardar, borrar, cerrar }:
             <select value={f.lugar} onChange={(e) => set('lugar', e.target.value as Lugar)}>
               {(Object.keys(LUGARES) as Lugar[]).map((l) => (
                 <option key={l} value={l}>
-                  {LUGARES[l].icono} {LUGARES[l].nombre}
+                  {LUGARES[l].nombre}
                 </option>
               ))}
             </select>
@@ -133,7 +134,7 @@ export function BloqueForm({ titulo, inicial, esFijo, guardar, borrar, cerrar }:
         {confirmar && (
           <div className="confirmar">
             <p>
-              ⚠ «{inicial.titulo}» es un bloque <b>FIJO</b>. ¿Seguro que quieres {confirmar === 'borrar' ? 'borrarlo' : 'moverlo'}?
+              <Icono n="alerta" size={18} /> «{inicial.titulo}» es un bloque <b>FIJO</b>. ¿Seguro que quieres {confirmar === 'borrar' ? 'borrarlo' : 'moverlo'}?
             </p>
             <div className="botones">
               <button className="btn btn-rojo" onClick={confirmar === 'borrar' ? intentarBorrar : intentarGuardar}>

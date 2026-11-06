@@ -146,6 +146,7 @@ h3 {
 }
 .stats {
   display: flex;
+  align-items: center;
   gap: 16px;
   font-weight: 900;
   font-size: 17px;
@@ -241,10 +242,9 @@ h3 {
   cursor: pointer;
 }
 .navegacion .icono {
-  font-size: 22px;
+  display: grid;
+  place-items: center;
   line-height: 1;
-  filter: grayscale(1);
-  opacity: 0.6;
 }
 .navegacion .activa {
   color: var(--azul);
@@ -377,8 +377,7 @@ button.ahora.tenue {
   border-color: var(--hoja);
 }
 .rana .emoji {
-  font-size: 28px;
-  line-height: 1;
+  flex-shrink: 0;
 }
 .rana.sin-rana {
   background: var(--nube);
@@ -1021,7 +1020,6 @@ label.check input {
   font-weight: 700;
   text-align: left;
   pointer-events: auto;
-  animation: bajar 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .aviso-xp {
   background: var(--verde-suave);
@@ -1263,4 +1261,597 @@ label.check input {
   height: 48px;
   object-fit: contain;
   image-rendering: pixelated;
+}
+
+/* =========================================================
+   Íconos y animaciones (GSAP)
+   ========================================================= */
+.icono-ui {
+  flex-shrink: 0;
+  vertical-align: -0.18em;
+}
+.sprite,
+.pixelado {
+  image-rendering: pixelated;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+h1 .icono-ui,
+h2 .icono-ui,
+h3 .icono-ui {
+  vertical-align: -0.15em;
+}
+.con-icono,
+h3:has(.icono-ui),
+h2:has(.icono-ui),
+h3:has(.sprite) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.btn:has(.icono-ui) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.stats .monedas,
+.stats .fuego,
+.stats .apagado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.stats .monedas .icono-ui {
+  color: var(--oro);
+}
+.saldo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.saldo .icono-ui {
+  color: var(--oro);
+}
+.etiquetas i:has(.sprite) {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.alerta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.racha {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.cabecera .relleno {
+  transition: width 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.75s;
+}
+.fila-resumen .relleno {
+  transition: none;
+}
+.cuadro .icono-ui {
+  color: var(--papel);
+}
+
+/* avisos: burbuja de ícono + texto + fichas de botín */
+.aviso {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.aviso-icono {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--azul-suave);
+  color: var(--azul);
+}
+.aviso-xp .aviso-icono {
+  background: var(--verde);
+  color: var(--papel);
+}
+.aviso-alerta .aviso-icono {
+  background: var(--rojo);
+  color: var(--papel);
+}
+.aviso-texto {
+  flex: 1;
+  min-width: 0;
+}
+.chips {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+}
+.chip-xp {
+  background: var(--azul-suave);
+  color: var(--azul-escalon);
+}
+.chip-moneda {
+  background: var(--oro-suave);
+  color: var(--oro-texto);
+}
+.chip-moneda .icono-ui {
+  color: var(--oro);
+}
+
+/* fichas de botín que vuelan a la cabecera */
+.plantillas-fichas {
+  display: none;
+}
+.ficha {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: var(--papel);
+}
+.ficha-moneda {
+  color: var(--oro);
+  background: var(--oro-suave);
+}
+.ficha-xp {
+  color: var(--azul);
+  background: var(--azul-suave);
+}
+.ficha-voladora {
+  position: fixed;
+  z-index: 90;
+  margin: -15px 0 0 -15px;
+  pointer-events: none;
+}
+.confeti {
+  position: fixed;
+  z-index: 95;
+  width: 9px;
+  height: 13px;
+  margin: -6px 0 0 -4px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+/* celebraciones */
+.celebra-chica {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.sello {
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--verde);
+  border-bottom: 6px solid var(--verde-escalon);
+  color: var(--papel);
+}
+.sello-texto {
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: var(--papel);
+  border: 2px solid var(--hoja);
+  color: var(--verde-escalon);
+  font-size: 20px;
+  font-weight: 900;
+}
+.celebra {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.celebra-fondo {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.94);
+}
+.tema-oscuro .celebra-fondo {
+  background: rgba(20, 12, 36, 0.94);
+}
+.celebra-contenido {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+.celebra-escena {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 220px;
+  height: 220px;
+}
+.celebra-rayos {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, var(--rayo) 0deg 12deg, transparent 12deg 30deg);
+  -webkit-mask: radial-gradient(circle, #000 30%, transparent 70%);
+  mask: radial-gradient(circle, #000 30%, transparent 70%);
+  --rayo: rgba(88, 204, 2, 0.35);
+}
+.tema-oro .celebra-rayos {
+  --rayo: rgba(255, 200, 0, 0.45);
+}
+.tema-azul .celebra-rayos {
+  --rayo: rgba(28, 176, 246, 0.35);
+}
+.tema-fuego .celebra-rayos {
+  --rayo: rgba(255, 150, 0, 0.4);
+}
+.tema-oscuro .celebra-rayos {
+  --rayo: rgba(90, 58, 128, 0.6);
+}
+.celebra-insignia {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: var(--papel);
+  border: 4px solid var(--hoja);
+  border-bottom-width: 8px;
+  color: var(--verde);
+}
+.celebra-insignia img {
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+}
+.tema-oro .celebra-insignia {
+  border-color: var(--oro);
+  color: var(--oro);
+}
+.tema-azul .celebra-insignia {
+  border-color: #84d8ff;
+  color: var(--azul);
+}
+.tema-fuego .celebra-insignia {
+  border-color: var(--fuego);
+  color: var(--fuego);
+}
+.tema-oscuro .celebra-insignia {
+  background: #2a1840;
+  border-color: #5a3a80;
+}
+.celebra-titulo {
+  margin: 8px 0 0;
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--carbon);
+}
+.tema-oscuro .celebra-titulo {
+  color: #ffd84d;
+}
+.celebra-sub {
+  max-width: 300px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--lapiz);
+}
+.tema-oscuro .celebra-sub {
+  color: #d7c6f0;
+}
+.celebra-toca {
+  margin-top: 16px;
+  color: var(--gris);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- la Crónica: libro ilustrado ---------- */
+.libro {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.libro-fondo {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 12, 36, 0.7);
+}
+.libro-hoja {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  padding: 16px;
+  background: var(--papel);
+  border: 2px solid var(--linea);
+  border-bottom-width: 6px;
+  border-radius: 24px;
+  touch-action: pan-y;
+}
+.libro-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.libro-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--azul);
+  font-size: 14px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.escenario {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 180 / 108;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 2px solid var(--linea);
+  background: #bfeaff;
+}
+.escenario.sellado {
+  background: #1b1530;
+}
+.escenario.sellado .mundo {
+  filter: brightness(0) invert(1) opacity(0.14);
+}
+.escenario.sellado .cielo,
+.escenario.sellado .suelo,
+.escenario.sellado .camino,
+.escenario.sellado .colinas,
+.escenario.sellado .terreno-sombra {
+  display: none;
+}
+.sello-capitulo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #ffd84d;
+}
+.sello-capitulo b {
+  padding: 2px 12px;
+  border-radius: 999px;
+  background: rgba(255, 216, 77, 0.15);
+  font-size: 16px;
+  font-weight: 900;
+}
+.mundo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 180px;
+  height: 108px;
+  transform-origin: 0 0;
+  overflow: hidden;
+}
+.mundo .capa {
+  position: absolute;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+.mundo .cielo {
+  position: absolute;
+  inset: 0;
+}
+.mundo .suelo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 62px;
+  bottom: 0;
+}
+.mundo .camino {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 93px;
+  height: 8px;
+  background: #e9c890;
+  border-top: 1px solid #d4a76a;
+  border-bottom: 1px solid #d4a76a;
+}
+.mundo .silueta {
+  filter: brightness(0.55) saturate(0.6);
+}
+.mundo .noche {
+  filter: brightness(0.5) saturate(0.7) hue-rotate(20deg);
+}
+.mundo .lejos {
+  filter: saturate(0.6) opacity(0.85);
+}
+.mundo .estrella {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  background: #fff;
+}
+.mundo .chispa {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  pointer-events: none;
+}
+.mundo .terreno-sombra {
+  position: absolute;
+  top: 62px;
+  width: 15px;
+  bottom: 0;
+  background: #2a1840;
+  opacity: 0;
+}
+.mundo .susurro {
+  position: absolute;
+  font-size: 7px;
+  font-style: italic;
+  font-weight: 800;
+  color: #d7c6f0;
+  white-space: nowrap;
+  opacity: 0;
+}
+.mundo .vida {
+  position: absolute;
+  width: 40px;
+  height: 5px;
+  padding: 1px;
+  background: #3c3c3c;
+}
+.mundo .vida-relleno {
+  width: 100%;
+  height: 100%;
+  background: var(--verde);
+}
+.mundo .por-dos {
+  position: absolute;
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--oro);
+  -webkit-text-stroke: 1px #3c3c3c;
+}
+.mundo .anillo {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+.anillo-fondo {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 4;
+}
+.anillo-tiempo {
+  fill: none;
+  stroke: var(--oro);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.mundo .luz {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 244, 204, 0.9), rgba(255, 216, 77, 0) 70%);
+  opacity: 0;
+}
+.libro-pie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 72px;
+  text-align: center;
+}
+.libro-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+}
+.libro-texto {
+  margin: 0;
+  max-width: 360px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--lapiz);
+}
+.libro-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.puntos {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.punto-pagina {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--linea);
+  cursor: pointer;
+  transition: width 0.3s, background 0.3s;
+}
+.punto-pagina.activo {
+  width: 28px;
+  background: var(--azul);
+}
+.punto-pagina.bloqueado:not(.activo) {
+  background: repeating-linear-gradient(45deg, var(--linea), var(--linea) 2px, var(--nube) 2px, var(--nube) 4px);
+}
+.marcador {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--nube);
+}
+.marcador-lado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 18px;
+  font-weight: 900;
+}
+.terrenos-mini {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2px;
+  height: 18px;
+}
+.terrenos-mini i {
+  border-radius: 3px;
+  background: var(--hoja);
+}
+.terrenos-mini i.oscuro {
+  background: #2a1840;
 }

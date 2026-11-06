@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState, type ReactNode } from 'react'
+import { Suspense, lazy, useRef, useState, type ReactNode } from 'react'
 import type { Bloque, Categoria, Dia } from '../types'
 import { useJuego } from '../store'
 import { CATEGORIAS, CATEGORIAS_RANA, LUGARES } from '../logic/catalogo'
@@ -7,15 +7,17 @@ import { evaluar } from '../logic/reglas'
 import { NOMBRES_DIA, diaSemana, esFinde, fechaCorta, fechaLocal, fmtDur, hhmmAMin, minAHhmm, minutosDelDia, sumarDias } from '../logic/tiempo'
 import { BloqueForm, formVacio } from '../components/BloqueForm'
 import { VidaRana } from './VistaBloque'
+import { Icono, Sprite, type NombreIcono } from '../ui/Icono'
+import { gsap, useGSAP } from '../ui/animar'
 
 const Aldea = lazy(() => import('../aldea/Aldea'))
 
-const ICONO_ESTADO: Record<Bloque['estado'], string> = {
-  pendiente: '',
-  activo: '▶',
-  completado: '✔',
-  fallido: '✖',
-  saltado: '—',
+const ICONO_ESTADO: Record<Bloque['estado'], NombreIcono | null> = {
+  pendiente: null,
+  activo: 'play',
+  completado: 'check',
+  fallido: 'cerrar',
+  saltado: 'menos',
 }
 
 export function Hoy({ ahora, abrir, pausado }: { ahora: number; abrir: (id: string) => void; pausado: boolean }) {
@@ -48,7 +50,7 @@ export function Hoy({ ahora, abrir, pausado }: { ahora: number; abrir: (id: stri
 
       {alertas.map((a) => (
         <div key={a} className="alerta">
-          ⚠ Choque: {a}
+          <Icono n="alerta" size={18} /> Choque: {a}
         </div>
       ))}
 
@@ -81,12 +83,12 @@ export function Hoy({ ahora, abrir, pausado }: { ahora: number; abrir: (id: stri
       </div>
 
       <div className={`tarjeta rana ${rana ? '' : 'sin-rana'}`}>
-        <span className="emoji">🐸</span>
+        <Sprite n="rana" size={44} className="emoji" />
         {rana ? (
           <button className="enlace" onClick={() => abrir(rana.id)}>
             <span className="rotulo">La Rana de hoy · XP doble</span>
             <br />
-            <b>{rana.titulo.replace('🐸 ', '')}</b> a las {minAHhmm(rana.inicio)}
+            <b>{rana.titulo}</b> a las {minAHhmm(rana.inicio)}
             <VidaRana b={rana} ahora={ahora} />
           </button>
         ) : (
@@ -106,7 +108,7 @@ export function Hoy({ ahora, abrir, pausado }: { ahora: number; abrir: (id: stri
           + Agregar bloque
         </button>
         <button className="btn" onClick={() => s.reacomodar(fecha)}>
-          🗺 Reacomodar pendientes
+          <Icono n="mapa" size={18} /> Reacomodar pendientes
         </button>
       </div>
       {cerrado && <p className="nota">Después del cierre no se agregan bloques ni hay XP de trabajo.</p>}
@@ -155,7 +157,7 @@ function TarjetaAhora(p: { activo?: Bloque; enCurso?: Bloque; siguiente?: Bloque
         <small>{p.activo ? 'EN EXPEDICIÓN' : 'TOCA AHORA'}</small>
         <b>{b.titulo}</b>
         <span>
-          {minAHhmm(b.inicio)} · {fmtDur(b.duracion)} · {LUGARES[b.lugar].icono} {LUGARES[b.lugar].nombre}
+          {minAHhmm(b.inicio)} · {fmtDur(b.duracion)} · <Icono n={LUGARES[b.lugar].icono} size={14} /> {LUGARES[b.lugar].nombre}
         </span>
         <span className="cta">{p.activo ? 'Ver temporizador' : b.tipo === 'clase' ? 'Hacer check-in' : 'Empezar'}</span>
       </button>
@@ -200,13 +202,11 @@ function LineaTiempo({ bloques, min, abrir }: { bloques: Bloque[]; min: number; 
     filas.push(
       <button key={b.id} className={`fila estado-${b.estado} ${enCurso ? 'en-curso' : ''} ${ignorado ? 'ignorado' : ''}`} onClick={() => abrir(b.id)}>
         <span className="hora">{minAHhmm(b.inicio)}</span>
-        <span className="cuadro" style={{ background: CATEGORIAS[b.categoria].color }}>
-          {ICONO_ESTADO[b.estado]}
-        </span>
+        <CuadroEstado b={b} />
         <span className="info">
           <span className="t">{b.titulo}</span>
           <span className="sub">
-            {fmtDur(b.duracion)} · {LUGARES[b.lugar].icono} {CATEGORIAS[b.categoria].nombre}
+            {fmtDur(b.duracion)} · <Icono n={LUGARES[b.lugar].icono} size={13} /> {CATEGORIAS[b.categoria].nombre}
             {b.fijo && ' · FIJO'}
             {b.opcional && ' · opcional'}
             {b.tipo === 'reunion' && ' · reunión'}
@@ -226,9 +226,11 @@ function Despertar({ dia, min }: { dia: Dia; min: number }) {
   const meta = esFinde(dia.fecha) ? ajustes.despertarFinde : ajustes.despertarSemana
   return (
     <div className="tarjeta compacta">
-      <h3>☀ Despertar</h3>
+      <h3>
+        <Icono n="sol" color="var(--oro)" /> Despertar
+      </h3>
       {dia.levante ? (
-        <p>{dia.levante === 'a-tiempo' ? '✔ A tiempo (+XP)' : '✖ Tarde'}</p>
+        <Resultado ok={dia.levante === 'a-tiempo'} />
       ) : min < 12 * 60 ? (
         <button className="btn btn-oro" onClick={() => marcar(dia.fecha)}>
           Me levanté
@@ -247,7 +249,9 @@ function HigieneHoy({ dia }: { dia: Dia }) {
   const meta = s.ajustes.comidasMeta
   return (
     <div className={`tarjeta compacta ${h.escudo ? 'escudo' : ''}`}>
-      <h3>🛡 Higiene {h.escudo && '✔'}</h3>
+      <h3>
+        <Icono n="escudo" color={h.escudo ? 'var(--verde)' : 'var(--azul)'} /> Higiene {h.escudo && <Icono n="ok" color="var(--verde)" />}
+      </h3>
       <label className="check">
         <input type="checkbox" checked={h.manana} onChange={() => s.higieneManana(dia.fecha)} /> Mañana: cara + dientes
       </label>
@@ -274,7 +278,9 @@ function FamiliaHoy({ dia }: { dia: Dia }) {
   const alternar = useJuego((s) => s.familiaHoy)
   return (
     <div className="tarjeta">
-      <h3>👪 Familia hoy</h3>
+      <h3>
+        <Icono n="familia" color="var(--azul)" /> Familia hoy
+      </h3>
       {(['hermana', 'hermano'] as const).map((k) => (
         <label key={k} className="check">
           <input type="checkbox" checked={dia.familia[k]} onChange={() => alternar(dia.fecha, k)} />
@@ -291,7 +297,9 @@ function ResumenDia({ dia }: { dia: Dia }) {
   const fallidos = dia.bloques.filter((b) => b.estado === 'fallido')
   return (
     <section className="tarjeta resumen">
-      <h2>🌙 Cierre del día</h2>
+      <h2>
+        <Icono n="noche" size={24} color="var(--azul)" /> Cierre del día
+      </h2>
       <div className="numeros">
         <div>
           <b>
@@ -309,11 +317,25 @@ function ResumenDia({ dia }: { dia: Dia }) {
         </div>
         <div>
           <b>{dia.monedas}</b>
-          <small>🪙 hoy</small>
+          <small>
+            <Icono n="moneda" size={12} /> hoy
+          </small>
         </div>
       </div>
-      <p>{r.cumplido ? '🔥 Día cumplido: la racha sigue.' : `Necesitas ${Math.round(umbral * 100)}% para sumar a la racha.`}</p>
-      {dia.higiene.escudo && <p>🛡 Escudo de Higiene ganado.</p>}
+      <p className="con-icono">
+        {r.cumplido ? (
+          <>
+            <Icono n="racha" color="var(--fuego)" /> Día cumplido: la racha sigue.
+          </>
+        ) : (
+          `Necesitas ${Math.round(umbral * 100)}% para sumar a la racha.`
+        )}
+      </p>
+      {dia.higiene.escudo && (
+        <p className="con-icono">
+          <Icono n="escudo" color="var(--verde)" /> Escudo de Higiene ganado.
+        </p>
+      )}
       {fallidos.length > 0 && <p className="nota">No pude: {fallidos.map((b) => b.titulo).join(', ')}</p>}
     </section>
   )
@@ -329,7 +351,9 @@ function RanaManana({ fecha }: { fecha: string }) {
   if (rana && !editando) {
     return (
       <div className="tarjeta rana bloque">
-        <h3>🐸 Rana de mañana</h3>
+        <h3>
+          <Sprite n="rana" size={26} /> Rana de mañana
+        </h3>
         <p>
           <b>{rana.tarea}</b> · {CATEGORIAS[rana.categoria ?? 'empresa'].nombre}
         </p>
@@ -341,7 +365,9 @@ function RanaManana({ fecha }: { fecha: string }) {
   }
   return (
     <div className="tarjeta rana bloque">
-      <h3>🐸 Elige la Rana de mañana</h3>
+      <h3>
+        <Sprite n="rana" size={26} /> Elige la Rana de mañana
+      </h3>
       <p className="nota">La tarea más difícil. Será tu primer bloque de trabajo, con XP doble.</p>
       <div className="formulario">
         <input value={tarea} onChange={(e) => setTarea(e.target.value)} placeholder="Ej. Terminar el login del cliente" />
@@ -371,19 +397,52 @@ function Acostarme({ dia, min }: { dia: Dia; min: number }) {
   const marcar = useJuego((s) => s.marcarAcoste)
   const luces = useJuego((s) => s.ajustes.horaLuces)
   if (horaCierre(dia.bloques) === null) {
-    return min >= 18 * 60 ? <p className="nota">🃏 Hoy el cierre y la hora de cama son flexibles: no cuentan como fallo.</p> : null
+    return min >= 18 * 60 ? <p className="nota con-icono"><Icono n="cartas" size={16} /> Hoy el cierre y la hora de cama son flexibles: no cuentan como fallo.</p> : null
   }
   if (min < 22 * 60) return null
   return (
     <div className="tarjeta">
-      <h3>🌙 Acostarme</h3>
+      <h3>
+        <Icono n="luna" color="var(--azul)" /> Acostarme
+      </h3>
       {dia.acoste ? (
-        <p>{dia.acoste === 'a-tiempo' ? '✔ A tiempo (+XP)' : '✖ Tarde'}</p>
+        <Resultado ok={dia.acoste === 'a-tiempo'} />
       ) : (
         <button className="btn btn-oro" onClick={() => marcar(dia.fecha)}>
           Me acosté (luces {luces})
         </button>
       )}
     </div>
+  )
+}
+
+function Resultado({ ok }: { ok: boolean }) {
+  return (
+    <p className="con-icono">
+      {ok ? <Icono n="ok" color="var(--verde)" /> : <Icono n="mal" color="var(--rojo)" />}
+      {ok ? 'A tiempo (+XP)' : 'Tarde'}
+    </p>
+  )
+}
+
+/** Cuadro de color del bloque: salta y gira cuando cambia de estado. */
+function CuadroEstado({ b }: { b: Bloque }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const previo = useRef(b.estado)
+  useGSAP(
+    () => {
+      if (previo.current === b.estado) return
+      previo.current = b.estado
+      const ok = b.estado === 'completado'
+      gsap.fromTo(ref.current, { scale: ok ? 1.7 : 0.6, rotation: ok ? -25 : 0 }, { scale: 1, rotation: 0, duration: 0.8, ease: 'elastic.out(1, 0.35)' })
+      if (b.estado === 'fallido') gsap.fromTo(ref.current, { x: -6 }, { x: 0, duration: 0.6, ease: 'sacudir' })
+    },
+    { dependencies: [b.estado] },
+  )
+  const icono = ICONO_ESTADO[b.estado]
+  return (
+    <span ref={ref} className="cuadro" style={{ background: CATEGORIAS[b.categoria].color }}>
+      {icono && <Icono n={icono} size={16} weight="bold" />}
+    </span>
   )
 }

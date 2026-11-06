@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import Phaser from 'phaser'
 import type { Bloque } from '../types'
-import { Modal } from '../components/Modal'
-import { CRONICA, TERRENOS } from '../logic/despues'
-import { nivelDeXp } from '../logic/reglas'
+import { TERRENOS } from '../logic/despues'
+import { Libro } from './Libro'
 import { useJuego } from '../store'
 import { minAHhmm } from '../logic/tiempo'
 import { ALTO, ANCHO, EscenaAldea, type Control } from './EscenaAldea'
 import { EDIFICIOS, NIVEL_MAX, UMBRALES_NIVEL, edificioDe, estadistica, faltanParaNivel, nivelEdificio, type IdEdificio } from './edificios'
 import { desbloquearAudio } from './sonido'
+import { Icono, Sprite, type NombreIcono } from '../ui/Icono'
 
-const ICONO: Record<Bloque['estado'], string> = { pendiente: '·', activo: '▶', completado: '✔', fallido: '✖', saltado: '—' }
+const ICONO: Record<Bloque['estado'], NombreIcono> = { pendiente: 'reloj', activo: 'play', completado: 'ok', fallido: 'mal', saltado: 'menos' }
 
 interface Props {
   fecha: string
@@ -74,29 +74,30 @@ export default function Aldea({ fecha, pausado, abrir }: Props) {
         <p className="aldea-estado">
           {activo ? (
             <>
-              {activo.esRana ? '🐸 Peleando contra la Rana desde ' : '⚔ En expedición desde '}
+              {activo.esRana ? <Sprite n="rana" size={20} /> : <Icono n="hoy" size={16} color="var(--verde)" />}
+              {activo.esRana ? ' Peleando contra la Rana desde ' : ' En expedición desde '}
               <b>{EDIFICIOS[edificioDe(activo)].nombre}</b>
             </>
           ) : sombra > 0 ? (
             <>
-              🌑 El Después cubre <b>{sombra} de {TERRENOS}</b> terrenos. Cumplir bloques lo hace retroceder.
+              <Sprite n="despues" size={20} /> El Después cubre <b>{sombra} de {TERRENOS}</b> terrenos. Cumplir bloques lo hace retroceder.
             </>
           ) : (
             'Toca un edificio para ver sus expediciones.'
           )}
         </p>
         <button className="btn btn-mini" onClick={() => setCronica(true)}>
-          📜 Crónica
+          <Icono n="cronica" size={16} /> Crónica
         </button>
       </div>
-      {cronica && <Cronica cerrar={() => setCronica(false)} />}
+      {cronica && <Libro cerrar={() => setCronica(false)} />}
 
       {info && est && elegido && (
         <div className="tarjeta edificio-info">
           <div className="cabeza-edificio">
             <h3>{info.nombre}</h3>
             <button className="cerrar" onClick={() => setElegido(null)} aria-label="Cerrar">
-              ✕
+              <Icono n="cerrar" size={22} weight="bold" />
             </button>
           </div>
           <p className="nota">{info.lema}</p>
@@ -114,7 +115,9 @@ export default function Aldea({ fecha, pausado, abrir }: Props) {
             </div>
             <div>
               <b>+{est.monedas}</b>
-              <small>🪙 hoy</small>
+              <small>
+                <Icono n="moneda" size={12} /> hoy
+              </small>
             </div>
             <div>
               <b>{est.historico}</b>
@@ -129,7 +132,9 @@ export default function Aldea({ fecha, pausado, abrir }: Props) {
                 <li key={b.id}>
                   <button className={`enlace estado-${b.estado}`} onClick={() => abrir(b.id)}>
                     <span className="hora">{minAHhmm(b.inicio)}</span>
-                    <span className="icono-estado">{ICONO[b.estado]}</span>
+                    <span className="icono-estado">
+                      <Icono n={ICONO[b.estado]} size={16} />
+                    </span>
                     <span>{b.titulo}</span>
                   </button>
                 </li>
@@ -155,37 +160,11 @@ function NivelEdificio({ hechas }: { hechas: number }) {
           Nivel {nivel}
           {nivel === NIVEL_MAX && ' · máximo'}
         </b>
-        <small>{faltan === null ? '⭐ Edificio completo' : `${faltan} expedición(es) para nivel ${nivel + 1}`}</small>
+        <small>{faltan === null ? 'Edificio completo' : `${faltan} expedición(es) para nivel ${nivel + 1}`}</small>
       </div>
       <div className="barra">
         <div className="relleno" style={{ width: `${pct}%` }} />
       </div>
     </div>
-  )
-}
-
-function Cronica({ cerrar }: { cerrar: () => void }) {
-  const xp = useJuego((s) => s.jugador.xp)
-  const d = useJuego((s) => s.despues)
-  const nivel = nivelDeXp(xp)
-  return (
-    <Modal titulo="📜 Crónica del Reino del Ahora" cerrar={cerrar}>
-      {CRONICA.map((c) =>
-        nivel >= c.nivel ? (
-          <section key={c.titulo} className="capitulo">
-            <h3>{c.titulo}</h3>
-            <p>{c.texto}</p>
-          </section>
-        ) : (
-          <section key={c.titulo} className="capitulo bloqueado">
-            <h3>🔒 Capítulo sellado</h3>
-            <p className="nota">Se revela al llegar al nivel {c.nivel}.</p>
-          </section>
-        ),
-      )}
-      <p className="nota">
-        El Después ha avanzado {d.avances} vez(es) y ha retrocedido {d.retrocesos}. Hoy cubre {d.sombra} de {TERRENOS} terrenos.
-      </p>
-    </Modal>
   )
 }

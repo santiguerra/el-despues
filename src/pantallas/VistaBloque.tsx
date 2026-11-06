@@ -8,6 +8,7 @@ import { fmtDur, fmtReloj, hhmmAMin, minAHhmm, minutosDelDia } from '../logic/ti
 import { vidaRana } from '../aldea/edificios'
 import { Modal } from '../components/Modal'
 import { BloqueForm } from '../components/BloqueForm'
+import { Icono, Sprite } from '../ui/Icono'
 
 interface Props {
   fecha: string
@@ -56,11 +57,15 @@ export function VistaBloque({ fecha, id, ahora, cerrar }: Props) {
           {b.duracion !== null && `–${minAHhmm(b.inicio + b.duracion)}`} · {fmtDur(b.duracion)}
         </span>
         <span>
-          {LUGARES[b.lugar].icono} {LUGARES[b.lugar].nombre} · {CATEGORIAS[b.categoria].nombre}
+          <Icono n={LUGARES[b.lugar].icono} size={16} /> {LUGARES[b.lugar].nombre} · {CATEGORIAS[b.categoria].nombre}
         </span>
         <span className="etiquetas">
           {b.fijo && <i>FIJO</i>}
-          {b.esRana && <i className="verde">🐸 RANA ×2</i>}
+          {b.esRana && (
+            <i className="verde">
+              <Sprite n="rana" size={16} /> RANA ×2
+            </i>
+          )}
           {b.opcional && <i>OPCIONAL</i>}
           {b.descanso && <i>DESCANSO</i>}
           <i>{TIPOS[b.tipo].split(' (')[0]}</i>
@@ -76,18 +81,20 @@ export function VistaBloque({ fecha, id, ahora, cerrar }: Props) {
 
       {b.estado === 'completado' && (
         <p className="resultado ok">
-          ✔ Completado · +{b.xp} XP · +{b.monedas} 🪙
+          <Icono n="ok" /> Completado · <Icono n="xp" size={16} />+{b.xp} · <Icono n="moneda" size={16} />+{b.monedas}
         </p>
       )}
       {b.resultado && b.estado !== 'completado' && <p className="resultado mal">{b.resultado}</p>}
       {b.estado === 'pendiente' && b.tipo !== 'hito' && xpPrevista.xp > 0 && (
-        <p className="nota">Botín: {xpPrevista.xp} XP · {xpPrevista.monedas} 🪙</p>
+        <p className="nota con-icono">
+          Botín: <Icono n="xp" size={16} color="var(--azul)" /> {xpPrevista.xp} XP · <Icono n="moneda" size={16} color="var(--oro)" /> {xpPrevista.monedas}
+        </p>
       )}
-      {xpPrevista.nota && b.estado === 'pendiente' && <p className="nota">⚠ {xpPrevista.nota}</p>}
+      {xpPrevista.nota && b.estado === 'pendiente' && <p className="nota con-icono"><Icono n="alerta" size={16} /> {xpPrevista.nota}</p>}
 
       <div className="botones pie">
         <button className="btn" onClick={() => setEditando(true)}>
-          ✎ Editar
+          <Icono n="editar" size={18} /> Editar
         </button>
         <button className="btn" onClick={cerrar}>
           Volver
@@ -102,7 +109,7 @@ function MetaRubik({ fecha, b }: { fecha: string; b: Bloque }) {
   const fijar = useJuego((s) => s.metaHoy)
   return (
     <label className="meta">
-      🧊 Meta de hoy:
+      <Icono n="cubo" color="var(--rojo)" /> Meta de hoy:
       <select value={b.meta} onChange={(e) => fijar(fecha, b.id, e.target.value)}>
         {[...new Set([b.meta!, ...metas])].map((m) => (
           <option key={m}>{m}</option>
@@ -162,7 +169,7 @@ function PanelTemporizador({ fecha, b, ahora }: { fecha: string; b: Bloque; ahor
       {b.estado === 'pendiente' && (
         <div className="botones">
           <button className="btn btn-grande btn-oro" onClick={() => s.iniciar(fecha, b.id)}>
-            ⚔ Iniciar
+            <Icono n="hoy" size={22} /> Iniciar
           </button>
           <NoPude fecha={fecha} b={b} />
         </div>
@@ -170,7 +177,13 @@ function PanelTemporizador({ fecha, b, ahora }: { fecha: string; b: Bloque; ahor
       {activo && (
         <div className="botones">
           <button className="btn btn-grande btn-verde" disabled={!listo} onClick={() => s.completar(fecha, b.id)}>
-            {listo ? '✔ Completar' : `Completar en ${fmtReloj(dur * 0.8 - trans)}`}
+            {listo ? (
+              <>
+                <Icono n="ok" size={22} /> Completar
+              </>
+            ) : (
+              `Completar en ${fmtReloj(dur * 0.8 - trans)}`
+            )}
           </button>
           <NoPude fecha={fecha} b={b} />
         </div>
@@ -186,7 +199,9 @@ export function VidaRana({ b, ahora }: { b: Bloque; ahora: number }) {
   return (
     <div className="vida-rana">
       <div className="fila-resumen-texto">
-        <b>🐸 Vida de la Rana</b>
+        <b className="con-icono">
+          <Sprite n="rana" size={20} /> Vida de la Rana
+        </b>
         <small>{texto}</small>
       </div>
       <div className="barra barra-vida">
@@ -209,7 +224,7 @@ function PanelClase({ fecha, b, ahora }: { fecha: string; b: Bloque; ahora: numb
           <div className="reloj-grande">{fmtReloj((c.inicio - min) * 60000)}</div>
           <small>para el check-in (abre {minAHhmm(c.inicio)}, cierra {minAHhmm(c.cierreCheckIn)})</small>
           <button className="btn btn-grande" disabled>
-            🎓 Check-in
+            <Icono n="clase" size={22} /> Check-in
           </button>
         </div>
       )
@@ -218,7 +233,7 @@ function PanelClase({ fecha, b, ahora }: { fecha: string; b: Bloque; ahora: numb
         <div className="reloj-grande">{fmtReloj((c.cierreCheckIn - min) * 60000)}</div>
         <small>para que se cierre el check-in</small>
         <button className="btn btn-grande btn-oro" onClick={() => s.checkIn(fecha, b.id)}>
-          🎓 Check-in
+          <Icono n="clase" size={22} /> Check-in
         </button>
       </div>
     )
@@ -234,17 +249,19 @@ function PanelClase({ fecha, b, ahora }: { fecha: string; b: Bloque; ahora: numb
       <Barra pct={(min - c.inicio) / (c.fin - c.inicio)} marca={0.5} />
 
       <p className="paso">
+        <Icono n={b.sigueAhi ? 'ok' : min < c.mitad + VENTANA_SIGUE_AHI ? 'ojo' : 'mal'} size={18} />
         {b.sigueAhi
-          ? '✔ Confirmaste a mitad de clase (+5 XP)'
+          ? 'Confirmaste a mitad de clase (+5 XP)'
           : min < c.mitad
-            ? `👀 A las ${minAHhmm(c.mitad)} te preguntaré "¿Sigues ahí?"`
+            ? `A las ${minAHhmm(c.mitad)} te preguntaré "¿Sigues ahí?"`
             : min < c.mitad + VENTANA_SIGUE_AHI
-              ? '👀 ¡Responde "Sigo aquí"!'
-              : '✖ No respondiste "¿Sigues ahí?"'}
+              ? '¡Responde "Sigo aquí"!'
+              : 'No respondiste "¿Sigues ahí?"'}
       </p>
 
       <button className="btn btn-grande btn-verde" disabled={min < c.abreCheckOut} onClick={() => s.checkOut(fecha, b.id)}>
-        {min < c.abreCheckOut ? `🏁 Check-out desde ${minAHhmm(c.abreCheckOut)}` : '🏁 Check-out'}
+        <Icono n="meta" size={22} />
+        {min < c.abreCheckOut ? `Check-out desde ${minAHhmm(c.abreCheckOut)}` : 'Check-out'}
       </button>
 
       {!b.salidaSolicitada && min < c.abreCheckOut && (
@@ -294,7 +311,8 @@ function PanelEvento({ fecha, b, min }: { fecha: string; b: Bloque; min: number 
   return (
     <div className="botones">
       <button className="btn btn-grande btn-verde" disabled={min < abre} onClick={() => s.asistir(fecha, b.id)}>
-        {min < abre ? `✔ Hecho (desde ${minAHhmm(abre)})` : b.familia ? '✔ Hecho' : '✔ Asistí'}
+        <Icono n="ok" size={22} />
+        {min < abre ? `Hecho (desde ${minAHhmm(abre)})` : b.familia ? 'Hecho' : 'Asistí'}
       </button>
       <NoPude fecha={fecha} b={b} />
     </div>

@@ -50,7 +50,7 @@ describe('generar el día desde la plantilla', () => {
   it('La Rana cae en el primer bloque de trabajo flexible', () => {
     const dia = crearDia(MARTES, fuente({ ranas: { [MARTES]: { tarea: 'Login del cliente' } } }))
     const rana = dia.bloques.find((x) => x.esRana)!
-    expect(rana.titulo).toBe('🐸 Login del cliente')
+    expect(rana.titulo).toBe('Login del cliente')
     expect(minAHhmm(rana.inicio)).toBe('07:05')
   })
 
