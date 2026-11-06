@@ -5,6 +5,7 @@ import { CATEGORIAS, LUGARES, TIPOS } from '../logic/catalogo'
 import { horaCierre } from '../logic/generador'
 import { ESPERA_SALIDA_MS, VENTANA_SIGUE_AHI, tiemposClase, xpBloque } from '../logic/reglas'
 import { fmtDur, fmtReloj, hhmmAMin, minAHhmm, minutosDelDia } from '../logic/tiempo'
+import { vidaRana } from '../aldea/edificios'
 import { Modal } from '../components/Modal'
 import { BloqueForm } from '../components/BloqueForm'
 
@@ -154,6 +155,7 @@ function PanelTemporizador({ fecha, b, ahora }: { fecha: string; b: Bloque; ahor
 
   return (
     <div className="temporizador">
+      {b.esRana && <VidaRana b={b} ahora={ahora} />}
       <div className="reloj-grande">{activo ? (trans > dur ? `+${fmtReloj(trans - dur)}` : fmtReloj(dur - trans)) : fmtReloj(dur)}</div>
       <small>{activo ? (trans > dur ? 'tiempo extra' : `restante · llevas ${fmtReloj(trans)}`) : 'duración'}</small>
       <Barra pct={pct} marca={0.8} />
@@ -173,6 +175,23 @@ function PanelTemporizador({ fecha, b, ahora }: { fecha: string; b: Bloque; ahor
           <NoPude fecha={fecha} b={b} />
         </div>
       )}
+    </div>
+  )
+}
+
+export function VidaRana({ b, ahora }: { b: Bloque; ahora: number }) {
+  const vida = vidaRana(b, ahora)
+  const texto =
+    b.estado === 'completado' ? '¡Vencida! Botín doble.' : b.estado === 'fallido' ? 'Se escapó…' : b.estado === 'activo' ? `${Math.ceil(vida * 100)}% de vida` : 'Te espera en el camino'
+  return (
+    <div className="vida-rana">
+      <div className="fila-resumen-texto">
+        <b>🐸 Vida de la Rana</b>
+        <small>{texto}</small>
+      </div>
+      <div className="barra barra-vida">
+        <div className={`relleno ${vida > 0.5 ? '' : vida > 0.25 ? 'media' : 'baja'}`} style={{ width: `${vida * 100}%` }} />
+      </div>
     </div>
   )
 }

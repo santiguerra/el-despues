@@ -66,7 +66,7 @@ export function Ajustes() {
       <section className="tarjeta">
         <h3>🔔 Notificaciones</h3>
         <p className="nota">
-          Se usan para el "¿Sigues ahí?" de las clases. Funcionan mientras la app esté abierta o en segundo plano reciente.
+          "¿Sigues ahí?" de las clases y recordatorios. Funcionan mientras la app esté abierta o en segundo plano reciente.
         </p>
         <p>Estado: {permiso === 'granted' ? '✔ activadas' : permiso === 'denied' ? '✖ bloqueadas (actívalas en el navegador)' : permiso}</p>
         {permiso === 'default' && (
@@ -74,6 +74,26 @@ export function Ajustes() {
             Activar notificaciones
           </button>
         )}
+        <label className="check">
+          <input type="checkbox" checked={!a.sinAvisoBloques} onChange={() => s.editarAjustes({ sinAvisoBloques: !a.sinAvisoBloques })} />
+          Aviso 5 min antes de cada bloque
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={!a.sinAvisoRana} onChange={() => s.editarAjustes({ sinAvisoRana: !a.sinAvisoRana })} />
+          Recordatorio a las 21:00 para elegir la Rana
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={!a.sinAvisoResumen} onChange={() => s.editarAjustes({ sinAvisoResumen: !a.sinAvisoResumen })} />
+          Resumen semanal (domingo 15:00)
+        </label>
+      </section>
+
+      <section className="tarjeta">
+        <h3>🔊 Sonido</h3>
+        <label className="check">
+          <input type="checkbox" checked={!a.silencio} onChange={() => s.editarAjustes({ silencio: !a.silencio })} />
+          Sonidos de la aldea
+        </label>
       </section>
 
       <section className="tarjeta">
@@ -131,7 +151,7 @@ export function Ajustes() {
           </div>
         )}
       </section>
-      <p className="nota centro">El Después · Fase 0</p>
+      <p className="nota centro">El Después · Fase 4</p>
     </div>
   )
 }

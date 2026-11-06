@@ -16,8 +16,8 @@ export function Habitos({ ahora }: { ahora: number }) {
   const [nueva, setNueva] = useState('')
 
   return (
-    <div className="pantalla">
-      <h1>Hábitos</h1>
+    <>
+      <h2>Hábitos</h2>
       {(Object.keys(HABITOS) as ClaveHabito[]).map((k) => {
         const h = s.habitos[k]
         const viva = h.ultima === hoy || h.ultima === sumarDias(hoy, -1)
@@ -74,6 +74,6 @@ export function Habitos({ ahora }: { ahora: number }) {
           </button>
         </div>
       </section>
-    </div>
+    </>
   )
 }

@@ -7,26 +7,26 @@ import { ModalSigueAhi } from './components/ModalSigueAhi'
 import { Hoy } from './pantallas/Hoy'
 import { VistaBloque } from './pantallas/VistaBloque'
 import { Plantilla } from './pantallas/Plantilla'
-import { Habitos } from './pantallas/Habitos'
+import { Progreso } from './pantallas/Progreso'
 import { Tienda } from './pantallas/Tienda'
 import { Ajustes } from './pantallas/Ajustes'
 import { fechaLocal, minAHhmm, minutosDelDia } from './logic/tiempo'
 
-type Pestana = 'hoy' | 'plantilla' | 'habitos' | 'tienda' | 'ajustes'
+type Pestana = 'hoy' | 'plantilla' | 'progreso' | 'tienda' | 'ajustes'
 
 const PESTANAS: { id: Pestana; icono: string; nombre: string }[] = [
   { id: 'hoy', icono: '⚔', nombre: 'Hoy' },
   { id: 'plantilla', icono: '🗓', nombre: 'Semana' },
-  { id: 'habitos', icono: '🔥', nombre: 'Hábitos' },
+  { id: 'progreso', icono: '📊', nombre: 'Progreso' },
   { id: 'tienda', icono: '🪙', nombre: 'Tienda' },
   { id: 'ajustes', icono: '⚙', nombre: 'Ajustes' },
 ]
 
 export default function App() {
   const ahora = useAhora()
-  useMotor(ahora)
-  const desfase = useJuego((s) => s.ajustes.desfaseMin)
   const [pestana, setPestana] = useState<Pestana>('hoy')
+  useMotor(ahora, (p) => PESTANAS.some((x) => x.id === p) && setPestana(p as Pestana))
+  const desfase = useJuego((s) => s.ajustes.desfaseMin)
   const [abierto, setAbierto] = useState<string | null>(null)
   const fecha = fechaLocal(ahora)
 
@@ -39,9 +39,9 @@ export default function App() {
         </div>
       )}
       <main className="contenido">
-        {pestana === 'hoy' && <Hoy ahora={ahora} abrir={setAbierto} />}
+        {pestana === 'hoy' && <Hoy ahora={ahora} abrir={setAbierto} pausado={abierto !== null} />}
         {pestana === 'plantilla' && <Plantilla ahora={ahora} />}
-        {pestana === 'habitos' && <Habitos ahora={ahora} />}
+        {pestana === 'progreso' && <Progreso ahora={ahora} />}
         {pestana === 'tienda' && <Tienda />}
         {pestana === 'ajustes' && <Ajustes />}
       </main>

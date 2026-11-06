@@ -1066,3 +1066,201 @@ label.check input {
     transition: none !important;
   }
 }
+
+/* ---------- aldea (Fase 1) ---------- */
+.aldea {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aldea-lienzo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 180 / 108;
+  overflow: hidden;
+  background: #bfeaff;
+  border: 2px solid var(--linea);
+  border-bottom-width: 4px;
+  border-radius: var(--radio-tarjeta);
+}
+.aldea-lienzo.cargando {
+  background: var(--nube);
+}
+.aldea-phaser {
+  position: absolute;
+  inset: 0;
+}
+.aldea-phaser canvas {
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  touch-action: pan-y;
+}
+.aldea-estado {
+  margin: 0;
+  font-size: 14px;
+  color: var(--lapiz);
+}
+.aldea-estado b {
+  color: var(--carbon);
+}
+.cabeza-edificio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cabeza-edificio h3 {
+  margin: 0;
+}
+.lista-edificio {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.lista-edificio .enlace {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  text-align: left;
+  color: var(--carbon);
+}
+.lista-edificio .hora {
+  min-width: 44px;
+  color: var(--lapiz);
+  font-variant-numeric: tabular-nums;
+}
+.lista-edificio .icono-estado {
+  width: 16px;
+  text-align: center;
+}
+.lista-edificio .estado-completado .icono-estado {
+  color: var(--verde);
+}
+.lista-edificio .estado-fallido .icono-estado {
+  color: var(--rojo);
+}
+
+/* ---------- progreso: resumen semanal (Fase 4) ---------- */
+.resumen-semanal {
+  gap: 12px;
+}
+.resumen-semanal h3 {
+  margin: 8px 0 0;
+}
+.cabeza-semana {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cabeza-semana h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 18px;
+  text-align: center;
+}
+.fila-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fila-resumen-texto {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 14px;
+}
+.fila-resumen-texto small {
+  color: var(--gris);
+  font-weight: 700;
+}
+.fila-resumen .relleno.bajo {
+  background: var(--fuego);
+}
+.punto {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
+/* ---------- aldea: pie, niveles, crónica (Fases 2-3) ---------- */
+.aldea-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.aldea-pie .btn-mini {
+  flex-shrink: 0;
+}
+.nivel-edificio {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.capitulo h3 {
+  margin: 0 0 4px;
+}
+.capitulo p {
+  margin: 0;
+  line-height: 1.6;
+}
+.capitulo.bloqueado h3 {
+  color: var(--gris);
+}
+.vida-rana {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
+}
+.barra-vida .relleno {
+  transition: width 1s linear;
+}
+.barra-vida .relleno.media {
+  background: var(--oro);
+}
+.barra-vida .relleno.baja {
+  background: var(--rojo);
+}
+
+/* ---------- tienda de cosméticos (Fase 4) ---------- */
+.cosmeticos h2 {
+  margin: 8px 0 4px;
+}
+.rejilla-cosmeticos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+.cosmetico {
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.cosmetico b {
+  font-size: 14px;
+  line-height: 1.25;
+}
+.cosmetico .btn {
+  margin-top: 4px;
+}
+.cosmetico.puesto {
+  border-color: var(--azul);
+  background: var(--azul-suave);
+}
+.vista-pixel {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}

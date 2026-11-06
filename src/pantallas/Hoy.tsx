@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { Suspense, lazy, useState, type ReactNode } from 'react'
 import type { Bloque, Categoria, Dia } from '../types'
 import { useJuego } from '../store'
 import { CATEGORIAS, CATEGORIAS_RANA, LUGARES } from '../logic/catalogo'
@@ -6,6 +6,9 @@ import { choques, finDe, horaCierre } from '../logic/generador'
 import { evaluar } from '../logic/reglas'
 import { NOMBRES_DIA, diaSemana, esFinde, fechaCorta, fechaLocal, fmtDur, hhmmAMin, minAHhmm, minutosDelDia, sumarDias } from '../logic/tiempo'
 import { BloqueForm, formVacio } from '../components/BloqueForm'
+import { VidaRana } from './VistaBloque'
+
+const Aldea = lazy(() => import('../aldea/Aldea'))
 
 const ICONO_ESTADO: Record<Bloque['estado'], string> = {
   pendiente: '',
@@ -15,7 +18,7 @@ const ICONO_ESTADO: Record<Bloque['estado'], string> = {
   saltado: '—',
 }
 
-export function Hoy({ ahora, abrir }: { ahora: number; abrir: (id: string) => void }) {
+export function Hoy({ ahora, abrir, pausado }: { ahora: number; abrir: (id: string) => void; pausado: boolean }) {
   const fecha = fechaLocal(ahora)
   const dia = useJuego((s) => s.dias[fecha])
   const s = useJuego()
@@ -66,6 +69,10 @@ export function Hoy({ ahora, abrir }: { ahora: number; abrir: (id: string) => vo
         </div>
       ))}
 
+      <Suspense fallback={<div className="aldea-lienzo cargando" />}>
+        <Aldea fecha={fecha} pausado={pausado || agregando} abrir={abrir} />
+      </Suspense>
+
       <TarjetaAhora activo={activo} enCurso={enCurso} siguiente={siguiente} min={min} abrir={abrir} cerrado={cerrado} />
 
       <div className="rejilla-2">
@@ -80,6 +87,7 @@ export function Hoy({ ahora, abrir }: { ahora: number; abrir: (id: string) => vo
             <span className="rotulo">La Rana de hoy · XP doble</span>
             <br />
             <b>{rana.titulo.replace('🐸 ', '')}</b> a las {minAHhmm(rana.inicio)}
+            <VidaRana b={rana} ahora={ahora} />
           </button>
         ) : (
           <span>Hoy no hay Rana. Elígela esta noche para mañana.</span>

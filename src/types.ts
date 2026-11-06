@@ -71,6 +71,8 @@ export interface Bloque extends DatosBloque {
   xp?: number
   monedas?: number
   resultado?: string
+  /** ya se avisó que empieza en 5 min */
+  avisoInicio?: boolean
 }
 
 export interface TareaFamilia {
@@ -101,6 +103,8 @@ export interface Dia {
   evaluado: boolean
   cumplido?: boolean
   porcentaje?: number
+  avisoRana?: boolean
+  avisoResumen?: boolean
 }
 
 export interface Ajustes {
@@ -114,6 +118,12 @@ export interface Ajustes {
   rubikMetas: string[]
   /** reloj simulado para probar (minutos) */
   desfaseMin: number
+  /** apaga los sonidos de la aldea */
+  silencio?: boolean
+  /** apagar avisos (por defecto están encendidos) */
+  sinAvisoBloques?: boolean
+  sinAvisoRana?: boolean
+  sinAvisoResumen?: boolean
 }
 
 export interface Habito {
@@ -147,4 +157,18 @@ export interface Jugador {
 export interface Rana {
   tarea: string
   categoria?: Categoria
+}
+
+/** El villano: cuántos terrenos de la aldea tiene oscurecidos. */
+export interface ElDespues {
+  sombra: number
+  avances: number
+  retrocesos: number
+}
+
+export type Ranura = 'capa' | 'sombrero' | 'mascota' | 'fogata' | 'estandarte'
+
+export interface Cosmeticos {
+  comprados: string[]
+  equipados: Partial<Record<Ranura, string>>
 }

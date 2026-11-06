@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Recompensa } from '../types'
 import { useJuego } from '../store'
+import { TiendaCosmeticos } from './Cosmeticos'
 
 export function Tienda() {
   const s = useJuego()
@@ -76,6 +77,8 @@ export function Tienda() {
           + Nueva recompensa
         </button>
       )}
+
+      <TiendaCosmeticos />
 
       {s.canjes.length > 0 && (
         <section className="tarjeta">

@@ -34,6 +34,8 @@ export default defineConfig({
       },
     }),
   ],
+  // Phaser (~1,2 MB) va en su propio chunk, cargado solo en la pestaña Hoy y precacheado para uso offline.
+  build: { chunkSizeWarningLimit: 1400 },
   server: { host: true },
   preview: { host: true },
 })

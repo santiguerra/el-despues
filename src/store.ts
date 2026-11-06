@@ -8,7 +8,9 @@ import type {
   Canje,
   ClaveFamilia,
   ClaveHabito,
+  Cosmeticos,
   DatosBloque,
+  ElDespues,
   Dia,
   Habito,
   Jugador,
@@ -17,6 +19,9 @@ import type {
   TareaFamilia,
 } from './types'
 import { HABITOS } from './logic/catalogo'
+import { avanzar, despuesInicial, fraseAvance, fraseRetroceso, retroceder } from './logic/despues'
+import { cosmetico } from './logic/cosmeticos'
+import { EDIFICIOS, completadasEn, edificioDe, nivelEdificio } from './aldea/edificios'
 import { aplicarRana, bloqueFamilia, crearDia, horaCierre, limiteDia, organizar } from './logic/generador'
 import { ajustesIniciales, familiaInicial, plantillaInicial, tiendaInicial } from './logic/plantillaInicial'
 import {
@@ -32,7 +37,7 @@ import {
   tiemposClase,
   xpBloque,
 } from './logic/reglas'
-import { DIA_MIN, esFinde, fechaLocal, hhmmAMin, minAHhmm, minutosDelDia, msDe, sumarDias, uid } from './logic/tiempo'
+import { DIA_MIN, diaSemana, esFinde, fechaLocal, hhmmAMin, minAHhmm, minutosDelDia, msDe, sumarDias, uid } from './logic/tiempo'
 
 export interface Datos {
   plantilla: BloquePlantilla[]
@@ -44,6 +49,8 @@ export interface Datos {
   habitos: Record<ClaveHabito, Habito>
   tienda: Recompensa[]
   canjes: Canje[]
+  despues: ElDespues
+  cosmeticos: Cosmeticos
 }
 
 export interface Aviso {
@@ -53,6 +60,10 @@ export interface Aviso {
 }
 
 export interface Notificacion {
+  /** sigue: "¿Sigues ahí?" de clase · aviso: recordatorio simple */
+  tipo: 'sigue' | 'aviso'
+  /** pestaña que abre al tocarla */
+  pestana?: string
   titulo: string
   cuerpo: string
   fecha: string
@@ -66,6 +77,8 @@ interface Acciones {
   evaluarPendientes: (hoy: string) => void
   /** Revisa clases (¿Sigues ahí?, ventanas vencidas). Devuelve notificaciones por lanzar. */
   tick: () => Notificacion[]
+  /** Recordatorios: bloque en 5 min, Rana de mañana, resumen semanal. */
+  revisarAvisos: () => Notificacion[]
 
   iniciar: (fecha: string, id: string) => void
   completar: (fecha: string, id: string) => void
@@ -105,6 +118,8 @@ interface Acciones {
   editarRecompensa: (id: string, nombre: string, costo: number) => void
   borrarRecompensa: (id: string) => void
   canjear: (id: string) => void
+  comprarCosmetico: (id: string) => void
+  equipar: (id: string) => void
 
   editarAjustes: (a: Partial<Ajustes>) => void
   avisar: (texto: string, tipo?: Aviso['tipo']) => void
@@ -129,6 +144,8 @@ export function datosIniciales(): Datos {
     habitos: { lectura: habitoNuevo(), rubik: habitoNuevo(), estudio: habitoNuevo() },
     tienda: tiendaInicial(),
     canjes: [],
+    despues: despuesInicial(),
+    cosmeticos: { comprados: [], equipados: {} },
   }
 }
 
@@ -213,6 +230,19 @@ function finalizar(s: S, dia: Dia, b: Bloque) {
     dia.higiene.noche = true
     revisarEscudo(s, dia)
   }
+  if (b.esRana && r.xp > 0) avisar(s, '🐸 ¡Venciste a la Rana! Botín doble.', 'xp')
+  // Fase 2: el edificio de la expedición sube de nivel
+  const ed = edificioDe(b)
+  const hechas = completadasEn(ed, s.dias)
+  const nivel = nivelEdificio(hechas)
+  if (nivel > nivelEdificio(hechas - 1)) avisar(s, `🏛 ${EDIFICIOS[ed].nombre} sube a nivel ${nivel}.`, 'xp')
+  // Fase 3: cumplir hace retroceder a El Después
+  if (retroceder(s.despues)) avisar(s, fraseRetroceso(s.despues.retrocesos))
+}
+
+/** Fase 3: cada "No pude" oscurece un terreno. */
+function rendirse(s: S) {
+  if (avanzar(s.despues)) avisar(s, fraseAvance(s.despues.avances), 'alerta')
 }
 
 function pendientesAntes(dia: Dia) {
@@ -290,9 +320,48 @@ export const useJuego = create<Juego>()(
             }
             if (b.estado === 'activo' && !b.sigueAhi && !b.avisoSigueAhi && min >= c.mitad && min < c.mitad + VENTANA_SIGUE_AHI) {
               b.avisoSigueAhi = true
-              notifs.push({ titulo: '¿Sigues ahí?', cuerpo: `Mitad de ${b.titulo}. Toca para confirmar.`, fecha, id: b.id })
+              notifs.push({ tipo: 'sigue', titulo: '¿Sigues ahí?', cuerpo: `Mitad de ${b.titulo}. Toca para confirmar.`, fecha, id: b.id })
             }
           }
+        })
+        return notifs
+      },
+
+      revisarAvisos: () => {
+        const notifs: Notificacion[] = []
+        set((s) => {
+          const t = reloj(s.ajustes)
+          const fecha = fechaLocal(t)
+          const dia = s.dias[fecha]
+          if (!dia) return
+          const min = minutosDelDia(t)
+          const a = s.ajustes
+          if (!a.sinAvisoBloques) {
+            for (const b of dia.bloques) {
+              if (b.avisoInicio || b.estado !== 'pendiente' || b.tipo === 'hito' || b.sinEspacio || (b.opcional && !b.aceptado)) continue
+              if (min < b.inicio - 5 || min >= b.inicio + 1) continue
+              b.avisoInicio = true
+              const titulo = b.esRana ? '🐸 La Rana te espera' : b.tipo === 'clase' ? '🎓 Clase en 5 min' : '⚔ Expedición en 5 min'
+              const cuerpo = `${b.titulo} a las ${minAHhmm(b.inicio)}${b.tipo === 'clase' ? ' · check-in en los primeros 5 min' : ''}`
+              notifs.push({ tipo: 'aviso', titulo, cuerpo, fecha, id: b.id })
+            }
+          }
+          if (!a.sinAvisoRana && !dia.avisoRana && min >= 21 * 60 && !s.ranas[sumarDias(fecha, 1)]) {
+            dia.avisoRana = true
+            notifs.push({ tipo: 'aviso', titulo: '🐸 Elige la Rana de mañana', cuerpo: 'La tarea más difícil, decidida desde hoy.', fecha, id: 'rana' })
+          }
+          if (!a.sinAvisoResumen && !dia.avisoResumen && diaSemana(fecha) === 0 && min >= 15 * 60) {
+            dia.avisoResumen = true
+            notifs.push({
+              tipo: 'aviso',
+              pestana: 'progreso',
+              titulo: '📊 Tu resumen semanal está listo',
+              cuerpo: 'Mira qué categorías y franjas funcionaron antes de planear la semana.',
+              fecha,
+              id: 'resumen',
+            })
+          }
+          for (const n of notifs) avisar(s, `${n.titulo}: ${n.cuerpo}`)
         })
         return notifs
       },
@@ -333,6 +402,7 @@ export const useJuego = create<Juego>()(
           b.estado = 'fallido'
           b.terminadoEn = reloj(s.ajustes)
           b.resultado = 'No pude.'
+          rendirse(s)
           const antes = pendientesAntes(dia)
           reorganizar(s, dia, minDe(s, fecha))
           informarReplan(s, dia, antes)
@@ -423,6 +493,7 @@ export const useJuego = create<Juego>()(
           b.estado = 'fallido'
           b.terminadoEn = reloj(s.ajustes)
           b.resultado = 'Saliste antes de terminar: sin XP.'
+          rendirse(s)
         }),
 
       higieneManana: (fecha) =>
@@ -590,6 +661,25 @@ export const useJuego = create<Juego>()(
           avisar(s, `🎁 Disfruta: ${r.nombre}. Te lo ganaste, sin culpa.`, 'xp')
         }),
 
+      comprarCosmetico: (id) =>
+        set((s) => {
+          const c = cosmetico(id)
+          if (!c || s.cosmeticos.comprados.includes(id)) return
+          if (s.jugador.monedas < c.costo) return avisar(s, `Te faltan ${c.costo - s.jugador.monedas} 🪙 para ${c.nombre}.`, 'alerta')
+          s.jugador.monedas -= c.costo
+          s.cosmeticos.comprados.push(id)
+          s.cosmeticos.equipados[c.ranura] = id
+          avisar(s, `✨ Compraste ${c.nombre}. Ya está en la aldea.`)
+        }),
+
+      equipar: (id) =>
+        set((s) => {
+          const c = cosmetico(id)
+          if (!c || !s.cosmeticos.comprados.includes(id)) return
+          const eq = s.cosmeticos.equipados
+          eq[c.ranura] = eq[c.ranura] === id ? undefined : id
+        }),
+
       editarAjustes: (a) => set((s) => void Object.assign(s.ajustes, a)),
       avisar: (texto, tipo = 'info') => set((s) => avisar(s, texto, tipo)),
       quitarAviso: (id) =>
@@ -619,8 +709,8 @@ export const useJuego = create<Juego>()(
       name: 'el-despues',
       version: 1,
       partialize: (s) => {
-        const { plantilla, familia, ajustes, dias, ranas, jugador, habitos, tienda, canjes } = s
-        return { plantilla, familia, ajustes, dias, ranas, jugador, habitos, tienda, canjes }
+        const { plantilla, familia, ajustes, dias, ranas, jugador, habitos, tienda, canjes, despues, cosmeticos } = s
+        return { plantilla, familia, ajustes, dias, ranas, jugador, habitos, tienda, canjes, despues, cosmeticos }
       },
     },
   ),
